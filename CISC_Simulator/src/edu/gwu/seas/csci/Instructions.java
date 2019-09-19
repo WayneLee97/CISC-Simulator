@@ -67,31 +67,51 @@ public class Instructions {
 	public void LDR(String instruction, Registers registers, Memory mm){
 		//first of all, get the EA
 		int EA = EA_calculator(instruction, registers, mm);
+		//set the MAR
+		registers.setMAR(String.format("%016d", int_to_binary(EA)));
 		//find out which register to be loaded from the memory
 		if(instruction.substring(6, 8).equals("00")){//R0
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			registers.setR0(mm.getMemory(EA));
 		}else if(instruction.substring(6, 8).equals("01")){//R1
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			registers.setR1(mm.getMemory(EA));
 		}else if(instruction.substring(6, 8).equals("10")){//R2
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			registers.setR2(mm.getMemory(EA));
 		}else if(instruction.substring(6, 8).equals("11")){//R3
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			registers.setR3(mm.getMemory(EA));
 		}
 	}
 	
-	//store register from memory
+	//store register to memory
 	public void STR(String instruction, Registers registers, Memory mm){
 		//first of all, get the EA
 		int EA = EA_calculator(instruction, registers, mm);
+		//set MAR
+		registers.setMAR(String.format("%016d", int_to_binary(EA)));
 		//find out which register to be stored into the memory
 		if(instruction.substring(6, 8).equals("00")){//R0
-			mm.setMemory(EA, registers.getR0());
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, String.format("%016d", registers.getR0()));
 		}else if(instruction.substring(6, 8).equals("01")){//R1
-			mm.setMemory(EA, registers.getR1());
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, String.format("%016d", registers.getR0()));
 		}else if(instruction.substring(6, 8).equals("10")){//R2
-			mm.setMemory(EA, registers.getR2());
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, String.format("%016d", registers.getR0()));
 		}else if(instruction.substring(6, 8).equals("11")){//R3
-			mm.setMemory(EA, registers.getR3());
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, String.format("%016d", registers.getR0()));
 		}
 	}
 	
@@ -99,15 +119,15 @@ public class Instructions {
 	public void LDA(String instruction, Registers registers, Memory mm){
 		//still, get the EA
 		int EA = EA_calculator(instruction, registers, mm);
-		//find out which register to store the address
+		//find out which register to store the address, and format the address to make become a 16-bits string
 		if(instruction.substring(6, 8).equals("00")){//R0
-			registers.setR0(int_to_binary(EA));
+			registers.setR0(String.format("%016d", int_to_binary(EA)));
 		}else if(instruction.substring(6, 8).equals("01")){//R1
-			registers.setR1(int_to_binary(EA));
+			registers.setR1(String.format("%016d", int_to_binary(EA)));
 		}else if(instruction.substring(6, 8).equals("10")){//R2
-			registers.setR2(int_to_binary(EA));
+			registers.setR2(String.format("%016d", int_to_binary(EA)));
 		}else if(instruction.substring(6, 8).equals("11")){//R3
-			registers.setR3(int_to_binary(EA));
+			registers.setR3(String.format("%016d", int_to_binary(EA)));
 		}
 	}
 	
@@ -115,12 +135,20 @@ public class Instructions {
 	public void LDX(String instruction, Registers registers, Memory mm){
 		//still, get the EA
 		int EA = EA_calculator(instruction, registers, mm);
+		//set MAR
+		registers.setMAR(String.format("%016d", int_to_binary(EA)));
 		//find out which register to store the address
 		if(instruction.substring(8, 10).equals("01")){//X1
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			registers.setX1(mm.getMemory(EA));
 		}else if(instruction.substring(8, 10).equals("10")){//X2
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			registers.setX2(mm.getMemory(EA));
 		}else if(instruction.substring(8, 10).equals("11")){//X3
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			registers.setX3(mm.getMemory(EA));
 		}
 	}
@@ -129,12 +157,20 @@ public class Instructions {
 	public void STX(String instruction, Registers registers, Memory mm){
 		//still, get the EA
 		int EA = EA_calculator(instruction, registers, mm);
+		//set MAR
+		registers.setMAR(String.format("%016d", int_to_binary(EA)));
 		//find out which register to store the address
 		if(instruction.substring(8, 10).equals("01")){//X1
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			mm.setMemory(EA, registers.getX1());
 		}else if(instruction.substring(8, 10).equals("10")){//X2
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			mm.setMemory(EA, registers.getX2());
 		}else if(instruction.substring(8, 10).equals("11")){//X3
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
 			mm.setMemory(EA, registers.getX3());
 		}
 	}
