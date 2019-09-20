@@ -1,4 +1,3 @@
-package edu.gwu.seas.csci;
 
 public class Instructions {
 	//a useful function to convert binary string to integer

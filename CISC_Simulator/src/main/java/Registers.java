@@ -1,4 +1,3 @@
-package edu.gwu.seas.csci;
 
 public class Registers {
 	//general purpose registers. 16 bits

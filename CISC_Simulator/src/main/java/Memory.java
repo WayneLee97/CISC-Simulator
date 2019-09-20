@@ -1,4 +1,3 @@
-package edu.gwu.seas.csci;
 
 public class Memory {
 	private String memory[];
