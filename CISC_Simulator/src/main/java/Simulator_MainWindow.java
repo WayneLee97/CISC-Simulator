@@ -49,9 +49,15 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private Registers registers;
     private Memory memory;
     private Instructions instructions;
+    private int cycleCount = 0;
     
     //private Map<JFormattedTextField,Word> wordMap;
 
+    public static int op_translator(String S_instruction, Instructions instruction){
+		String op_code = S_instruction.substring(0, 6);
+		return instruction.binary_to_int(op_code);
+	}
+    
     /**
      * Creates new form Simulator_MainWindow
      */
@@ -123,9 +129,8 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     public void cycle()
     {
 
-        int cycleCount = 0;
         System.out.print("cycle");
-        System.out.println(cycleCount++);
+        System.out.println(this.cycleCount++);
         
         if(inputType == InputType.BINARY)
         {
@@ -150,9 +155,66 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             
         }
         
+        //implement the instruction for this step
+        if(!this.memory.getMemory(this.instructions.binary_to_int(registers.getPC())).equals("0000000000000000")){
+			//execute the instruction,but first use the translator function to get the operation code
+			int op_code = op_translator(memory.getMemory(instructions.binary_to_int(registers.getPC())), instructions);
+			switch (op_code) {
+			//load register from the memory, LDR
+			case 1:
+				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+				this.instructions.LDR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+				break;
+			//store register from memory, STR
+			case 2:
+				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+				this.instructions.STR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+				break;
+			//load register with address, LDA
+			case 3:
+				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+				this.instructions.LDA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+				break;
+			//load index register from the memory, LDX
+			case 41:
+				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+				this.instructions.LDX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+				break;
+			//store index register to memory, STX
+			case 42:
+				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+				this.instructions.STX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+				break;
+			default:
+				break;
+			}
+		}
         
+        //go to the next instruction
+		int next_address = this.instructions.binary_to_int(registers.getPC()) + 1;
+		registers.setPC(this.instructions.int_to_binary(next_address));
+		//print for test
+		System.out.println(registers.getPC());
+		System.out.println(registers.getMAR());
         
+		R0_Field.setText(registers.getR0());
+        R1_Field.setText(registers.getR1());
+        R2_Field.setText(registers.getR2());
+        R3_Field.setText(registers.getR3());
         
+        X1_Field.setText(registers.getX1());
+        X2_Field.setText(registers.getX2());
+        X3_Field.setText(registers.getX3());
+        
+        PC_Field.setText(registers.getPC());
+        //CC_Field.setText(registers.getCC());
+        IR_Field.setText(registers.getIR());
+        MBR_Field.setText(registers.getMBR());
+        MAR_Field.setText(registers.getMAR());
+        MFR_Field.setText(registers.getMFR());
+        
+        Value_Field.setText(memory.getMemory(instructions.binary_to_int(Address_Field.getText())));
+		
         if(RunCheckBox.isSelected())
         {
             Timer timer = new Timer();
@@ -835,8 +897,30 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         // TODO add your handling code here:
         
         //load instructions into memory starting after address 6
-        //set PC to 6+?
+        //set PC to 10
         
+    	//this is the test program for this project, including all addressing modes. 
+    	//initialization
+    	/*
+    	 * mem[31] = 29, mem[30] = 31, mem[29] = 30, mem[28] = 30, IX[1] = 1, IX[2] = 2
+    	 * */
+    	memory.setMemory(31, "0000000000011101");
+    	memory.setMemory(30, "0000000000011111");
+    	memory.setMemory(29, "0000000000011110");
+    	memory.setMemory(28, "0000000000011110");
+    	registers.setX1("0000000000000001");
+    	registers.setX2("0000000000000010");
+    	//first, the LDR, R0 = 30
+    	memory.setMemory(10, "0000010001111110");
+    	//then, the STR, mem[28] = 30
+    	memory.setMemory(11, "0000100000011100");
+    	//next, the LDA, R1 = 29
+    	memory.setMemory(12, "0000110101111101");
+    	//next, the LDX, X2 = 29
+    	memory.setMemory(13, "1010010010111100");
+    	//last, the STX, mem[29] = 29
+    	memory.setMemory(14, "1010100010000000");
+    	registers.setPC("0000000000001010");
     }//GEN-LAST:event_LoadTest_ButtonActionPerformed
 
   
@@ -845,56 +929,54 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     /**
      * @param args the command line arguments
      */
-//    public static void main(String args[])
-//    {
-//        /* Set the Nimbus look and feel */
-//        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-//        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-//         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-//         */
-//        try
-//        {
-//            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
-//            {
-//                if ("Nimbus".equals(info.getName()))
-//                {
-//                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-//                    break;
-//                }
-//            }
-//        }
-//        catch (ClassNotFoundException ex)
-//        {
-//            java.util.logging.Logger.getLogger(Simulator_MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        }
-//        catch (InstantiationException ex)
-//        {
-//            java.util.logging.Logger.getLogger(Simulator_MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        }
-//        catch (IllegalAccessException ex)
-//        {
-//            java.util.logging.Logger.getLogger(Simulator_MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        }
-//        catch (javax.swing.UnsupportedLookAndFeelException ex)
-//        {
-//            java.util.logging.Logger.getLogger(Simulator_MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-//        }
-//        //</editor-fold>
-//
-//        /* Create and display the form */
-//        java.awt.EventQueue.invokeLater(new Runnable()
-//        {
-//            public void run()
-//            {
-//                Registers registers = new Registers();
-//		Memory mm = new Memory();//remember the first 6 addresses are preserved
-//		Instructions instruction = new Instructions();
-//                new Simulator_MainWindow(registers,mm,instruction).setVisible(true);
-//                
-//                
-//            }
-//        });
-//    }
+    public static void main(String args[])
+    {
+        /* Set the Nimbus look and feel */
+        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
+        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         */
+        try
+        {
+            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels())
+            {
+                if ("Nimbus".equals(info.getName()))
+                {
+                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        }
+        catch (ClassNotFoundException ex)
+        {
+            java.util.logging.Logger.getLogger(Simulator_MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        catch (InstantiationException ex)
+        {
+            java.util.logging.Logger.getLogger(Simulator_MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        catch (IllegalAccessException ex)
+        {
+            java.util.logging.Logger.getLogger(Simulator_MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        catch (javax.swing.UnsupportedLookAndFeelException ex)
+        {
+            java.util.logging.Logger.getLogger(Simulator_MainWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        }
+        //</editor-fold>
+
+        /* Create and display the form */
+        java.awt.EventQueue.invokeLater(new Runnable()
+        {
+            public void run()
+            {
+                Registers registers = new Registers();
+                Memory mm = new Memory();//remember the first 6 addresses are preserved
+                Instructions instruction = new Instructions();
+                new Simulator_MainWindow(registers,mm,instruction).setVisible(true);
+            }
+        });
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel AddressLabel;
