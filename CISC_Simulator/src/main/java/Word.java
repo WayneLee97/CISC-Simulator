@@ -47,6 +47,11 @@ public class Word
         }
     }
     
+    public int getInt()
+    {
+        return Integer.parseInt(getData(), 2);
+    }
+    
     public char charAt(int bitNum)
     {
         if(bitNum < word_length && bitNum >= 0)
@@ -80,6 +85,18 @@ public class Word
         }
         
         return sub;
+    }
+    public String toDecimalString()
+    {
+        
+        int intVal = Integer.parseInt(getData(), 2);
+        String intString = String.valueOf(intVal);
+        
+        return intString;
+    }
+    public String toBinaryString()
+    {
+        return getData();
     }
     
     

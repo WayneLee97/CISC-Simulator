@@ -31,38 +31,38 @@ public class Computer {
 		//auto-run, just get next PC and find out whether it is HALT operation
 		while(!registers.getPC().equals("0000000000000000")){
 			//execute the instruction,but first use the translator function to get the operation code
-			int op_code = Computer.op_translator(registers.getPC(), instruction);
+			int op_code = Computer.op_translator(registers.getPC().getData(), instruction);
 			switch (op_code) {
 			//load register from the memory, LDR
 			case 1:
-				registers.setIR(registers.getPC());
-				instruction.LDR(registers.getPC(), registers, mm);
+				registers.setIR(registers.getPC().getData());
+				instruction.LDR(registers.getPC().getData(), registers, mm);
 				break;
 			//store register from memory, STR
 			case 2:
-				registers.setIR(registers.getPC());
-				instruction.STR(registers.getPC(), registers, mm);
+				registers.setIR(registers.getPC().getData());
+				instruction.STR(registers.getPC().getData(), registers, mm);
 				break;
 			//load register with address, LDA
 			case 3:
-				registers.setIR(registers.getPC());
-				instruction.LDA(registers.getPC(), registers, mm);
+				registers.setIR(registers.getPC().getData());
+				instruction.LDA(registers.getPC().getData(), registers, mm);
 				break;
 			//load index register from the memory, LDX
 			case 41:
-				registers.setIR(registers.getPC());
-				instruction.LDX(registers.getPC(), registers, mm);
+				registers.setIR(registers.getPC().getData());
+				instruction.LDX(registers.getPC().getData(), registers, mm);
 				break;
 			//store index register to memory, STX
 			case 42:
-				registers.setIR(registers.getPC());
-				instruction.STX(registers.getPC(), registers, mm);
+				registers.setIR(registers.getPC().getData());
+				instruction.STX(registers.getPC().getData(), registers, mm);
 				break;
 			default:
 				break;
 			}
 			//go to the next instruction
-			int next_address = instruction.binary_to_int(registers.getPC()) + 1;
+			int next_address = instruction.binary_to_int(registers.getPC().getData()) + 1;
 			registers.setPC(instruction.int_to_binary(next_address));
 		}
 		
