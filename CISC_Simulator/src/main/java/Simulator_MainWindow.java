@@ -35,6 +35,7 @@ class ClockCycler extends TimerTask
 
 
 
+
 public class Simulator_MainWindow extends javax.swing.JFrame
 {
     static final String ZEROED_REGISTER = "0000000000000000";
@@ -115,22 +116,42 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void setInputType(InputType type)
     {
         this.inputType = type;
-        
-        if(type == InputType.BINARY)
-        {
-            
-        }
-        else if(type == inputType.DECIMAL)
-        {
-            
-        }
+        updateDisplay();
     }
     
-    public void cycle()
+    private String binaryToIntString(String binary)
     {
-
-        System.out.print("cycle");
-        System.out.println(this.cycleCount++);
+        return Instructions.binary_to_int(binary).toString();
+    }
+    private String intToBinaryString(int intval)
+    {
+        return Instructions.int_to_binary(intval);
+    }
+    
+    public void updateDisplay()
+    {
+        String cache_text = "";
+        
+        for(int i = 0; i < memory.MAX_CACHE; i++)
+        {
+            cache_text = cache_text.concat( (i+1) + ":\t");
+            if(i < memory.getCache().size())
+            {
+                if(inputType == InputType.BINARY)
+                {
+                    cache_text = cache_text.concat(intToBinaryString((Integer)memory.getCache().keySet().toArray()[i]) + "\t");
+                    cache_text = cache_text.concat(memory.getCache().values().toArray()[i].toString());
+                }
+                else if(inputType == InputType.DECIMAL)
+                {
+                    cache_text = cache_text.concat(memory.getCache().keySet().toArray()[i] + "\t");
+                    cache_text = cache_text.concat(binaryToIntString(memory.getCache().values().toArray()[i].toString()));
+                }
+            }
+            cache_text = cache_text.concat("\n");
+        }
+            
+            cache_area.setText(cache_text);
         
         if(inputType == InputType.BINARY)
         {
@@ -153,74 +174,93 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             
             Value_Field.setText(memory.getMemory(instructions.binary_to_int(Address_Field.getText())));
             
+            
+
+            
         }
+        else if(inputType == InputType.DECIMAL)
+        {
+            R0_Field.setText(binaryToIntString(registers.getR0()));
+            R1_Field.setText(binaryToIntString(registers.getR1()));
+            R2_Field.setText(binaryToIntString(registers.getR2()));
+            R3_Field.setText(binaryToIntString(registers.getR3()));
+            
+            X1_Field.setText(binaryToIntString(registers.getX1()));
+            X2_Field.setText(binaryToIntString(registers.getX2()));
+            X3_Field.setText(binaryToIntString(registers.getX3()));
+            
+            PC_Field.setText(binaryToIntString(registers.getPC()));
+            //CC_Field.setText(binaryToIntString(registers.getCC());
+            IR_Field.setText(binaryToIntString(registers.getIR()));
+            MBR_Field.setText(binaryToIntString(registers.getMBR()));
+            MAR_Field.setText(binaryToIntString(registers.getMAR()));
+            MFR_Field.setText(binaryToIntString(registers.getMFR()));
+            
+            
+            Value_Field.setText(binaryToIntString(memory.getMemory(instructions.binary_to_int(Address_Field.getText()))));
+        }
+    }
+    
+    public void cycle()
+    {
+
+        //System.out.print(memory.printCache());
+        
+
         
         //implement the instruction for this step
-        if(!this.memory.getMemory(this.instructions.binary_to_int(registers.getPC())).equals("0000000000000000")){
-			//execute the instruction,but first use the translator function to get the operation code
-			int op_code = op_translator(memory.getMemory(instructions.binary_to_int(registers.getPC())), instructions);
-			switch (op_code) {
-			//load register from the memory, LDR
-			case 1:
-				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-				this.instructions.LDR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-				break;
-			//store register from memory, STR
-			case 2:
-				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-				this.instructions.STR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-				break;
-			//load register with address, LDA
-			case 3:
-				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-				this.instructions.LDA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-				break;
-			//load index register from the memory, LDX
-			case 41:
-				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-				this.instructions.LDX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-				break;
-			//store index register to memory, STX
-			case 42:
-				registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-				this.instructions.STX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-				break;
-			default:
-				break;
-			}
-		}
+        if(!this.memory.getMemory(this.instructions.binary_to_int(registers.getPC())).equals("0000000000000000"))
+        {
+            //execute the instruction,but first use the translator function to get the operation code
+            int op_code = op_translator(memory.getMemory(instructions.binary_to_int(registers.getPC())), instructions);
+            switch (op_code) 
+            {
+            //load register from the memory, LDR
+            case 1:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.LDR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    break;
+            //store register from memory, STR
+            case 2:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.STR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    break;
+            //load register with address, LDA
+            case 3:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.LDA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    break;
+            //load index register from the memory, LDX
+            case 41:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.LDX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    break;
+            //store index register to memory, STX
+            case 42:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.STX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    break;
+            default:
+                    break;
+            }
+        }
         
         //go to the next instruction
-		int next_address = this.instructions.binary_to_int(registers.getPC()) + 1;
-		registers.setPC(this.instructions.int_to_binary(next_address));
-		//print for test
-		System.out.println(registers.getPC());
-		System.out.println(registers.getMAR());
+        int next_address = this.instructions.binary_to_int(registers.getPC()) + 1;
+        registers.setPC(this.instructions.int_to_binary(next_address));
+        //print for test
+        System.out.println(registers.getPC());
+        System.out.println(registers.getMAR());
         
-		R0_Field.setText(registers.getR0());
-        R1_Field.setText(registers.getR1());
-        R2_Field.setText(registers.getR2());
-        R3_Field.setText(registers.getR3());
-        
-        X1_Field.setText(registers.getX1());
-        X2_Field.setText(registers.getX2());
-        X3_Field.setText(registers.getX3());
-        
-        PC_Field.setText(registers.getPC());
-        //CC_Field.setText(registers.getCC());
-        IR_Field.setText(registers.getIR());
-        MBR_Field.setText(registers.getMBR());
-        MAR_Field.setText(registers.getMAR());
-        MFR_Field.setText(registers.getMFR());
-        
-        Value_Field.setText(memory.getMemory(instructions.binary_to_int(Address_Field.getText())));
-		
+        	
         if(RunCheckBox.isSelected())
         {
             Timer timer = new Timer();
             ClockCycler cycler = new ClockCycler(this);
             timer.schedule(cycler, CYCLE_TIME);
         }
+        
+        updateDisplay();
         
     }
     
@@ -236,18 +276,8 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void initComponents()
     {
 
-        Instruction_Box = new javax.swing.JComboBox<>();
-        R0_Label = new javax.swing.JLabel();
-        R0_Field = new javax.swing.JFormattedTextField();
-        Instruction_Label = new javax.swing.JLabel();
         RunCheckBox = new javax.swing.JCheckBox();
         StepButton = new javax.swing.JButton();
-        R1_Field = new javax.swing.JFormattedTextField();
-        R1_Label = new javax.swing.JLabel();
-        R3_Label = new javax.swing.JLabel();
-        R2_Label = new javax.swing.JLabel();
-        R2_Field = new javax.swing.JFormattedTextField();
-        R3_Field = new javax.swing.JFormattedTextField();
         AddressLabel = new javax.swing.JLabel();
         Value_Label = new javax.swing.JLabel();
         Address_Field = new javax.swing.JFormattedTextField();
@@ -255,7 +285,11 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         jLabel3 = new javax.swing.JLabel();
         InputType_Box = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
-        X1_Label = new javax.swing.JLabel();
+        OverrideButton = new javax.swing.JButton();
+        Override_Checkbox = new javax.swing.JCheckBox();
+        LoadTest_Button = new javax.swing.JButton();
+        jTabbedPane1 = new javax.swing.JTabbedPane();
+        jPanel1 = new javax.swing.JPanel();
         X3_Label = new javax.swing.JLabel();
         X2_Label = new javax.swing.JLabel();
         X2_Field = new javax.swing.JFormattedTextField();
@@ -266,33 +300,27 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         PC_Field = new javax.swing.JFormattedTextField();
         CC_Field = new javax.swing.JFormattedTextField();
         MBR_FIeld = new javax.swing.JLabel();
-        MFR_Label = new javax.swing.JLabel();
+        R3_Label = new javax.swing.JLabel();
+        R2_Label = new javax.swing.JLabel();
         MBR_Field = new javax.swing.JFormattedTextField();
-        MFR_Field = new javax.swing.JFormattedTextField();
+        R2_Field = new javax.swing.JFormattedTextField();
+        R3_Field = new javax.swing.JFormattedTextField();
         IR_Label = new javax.swing.JLabel();
         MAR_Label = new javax.swing.JLabel();
         IR_Field = new javax.swing.JFormattedTextField();
         MAR_Field = new javax.swing.JFormattedTextField();
-        OverrideButton = new javax.swing.JButton();
-        Override_Checkbox = new javax.swing.JCheckBox();
-        LoadTest_Button = new javax.swing.JButton();
+        R0_Label = new javax.swing.JLabel();
+        R0_Field = new javax.swing.JFormattedTextField();
+        R1_Field = new javax.swing.JFormattedTextField();
+        R1_Label = new javax.swing.JLabel();
+        X1_Label = new javax.swing.JLabel();
+        MFR_Label = new javax.swing.JLabel();
+        MFR_Field = new javax.swing.JFormattedTextField();
+        jPanel2 = new javax.swing.JPanel();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        cache_area = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-
-        Instruction_Box.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-
-        R0_Label.setText("R0");
-
-        R0_Field.setText("1234567890123456");
-        R0_Field.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                R0_FieldActionPerformed(evt);
-            }
-        });
-
-        Instruction_Label.setText("Instruction");
 
         RunCheckBox.setText("AutoRun?");
         RunCheckBox.addActionListener(new java.awt.event.ActionListener()
@@ -309,39 +337,6 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
                 StepButtonActionPerformed(evt);
-            }
-        });
-
-        R1_Field.setText("1234567890123456");
-        R1_Field.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                R1_FieldActionPerformed(evt);
-            }
-        });
-
-        R1_Label.setText("R1");
-
-        R3_Label.setText("R3");
-
-        R2_Label.setText("R2");
-
-        R2_Field.setText("1234567890123456");
-        R2_Field.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                R2_FieldActionPerformed(evt);
-            }
-        });
-
-        R3_Field.setText("1234567890123456");
-        R3_Field.addActionListener(new java.awt.event.ActionListener()
-        {
-            public void actionPerformed(java.awt.event.ActionEvent evt)
-            {
-                R3_FieldActionPerformed(evt);
             }
         });
 
@@ -381,7 +376,32 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 
         jLabel1.setText("Input Mode");
 
-        X1_Label.setText("X1");
+        OverrideButton.setText("Override All Values");
+        OverrideButton.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                OverrideButtonActionPerformed(evt);
+            }
+        });
+
+        Override_Checkbox.setText("Lock Override");
+        Override_Checkbox.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                Override_CheckboxActionPerformed(evt);
+            }
+        });
+
+        LoadTest_Button.setText("Load test program");
+        LoadTest_Button.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                LoadTest_ButtonActionPerformed(evt);
+            }
+        });
 
         X3_Label.setText("X3");
 
@@ -439,7 +459,9 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 
         MBR_FIeld.setText("MBR");
 
-        MFR_Label.setText("MFR");
+        R3_Label.setText("R3");
+
+        R2_Label.setText("R2");
 
         MBR_Field.setFormatterFactory(new javax.swing.text.DefaultFormatterFactory(new javax.swing.text.NumberFormatter(new java.text.DecimalFormat("###0"))));
         MBR_Field.setText("1234567890123456");
@@ -451,12 +473,21 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             }
         });
 
-        MFR_Field.setText("1234567890123456");
-        MFR_Field.addActionListener(new java.awt.event.ActionListener()
+        R2_Field.setText("1234567890123456");
+        R2_Field.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                MFR_FieldActionPerformed(evt);
+                R2_FieldActionPerformed(evt);
+            }
+        });
+
+        R3_Field.setText("1234567890123456");
+        R3_Field.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                R3_FieldActionPerformed(evt);
             }
         });
 
@@ -483,233 +514,222 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             }
         });
 
-        OverrideButton.setText("Override All Values");
-        OverrideButton.addActionListener(new java.awt.event.ActionListener()
+        R0_Label.setText("R0");
+
+        R0_Field.setText("1234567890123456");
+        R0_Field.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                OverrideButtonActionPerformed(evt);
+                R0_FieldActionPerformed(evt);
             }
         });
 
-        Override_Checkbox.setText("Lock Override");
-        Override_Checkbox.addActionListener(new java.awt.event.ActionListener()
+        R1_Field.setText("1234567890123456");
+        R1_Field.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                Override_CheckboxActionPerformed(evt);
+                R1_FieldActionPerformed(evt);
             }
         });
 
-        LoadTest_Button.setText("Load test program");
-        LoadTest_Button.addActionListener(new java.awt.event.ActionListener()
+        R1_Label.setText("R1");
+
+        X1_Label.setText("X1");
+
+        MFR_Label.setText("MFR");
+
+        MFR_Field.setText("1234567890123456");
+        MFR_Field.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                LoadTest_ButtonActionPerformed(evt);
+                MFR_FieldActionPerformed(evt);
             }
         });
+
+        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
+        jPanel1.setLayout(jPanel1Layout);
+        jPanel1Layout.setHorizontalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(R0_Label)
+                    .addComponent(R1_Label)
+                    .addComponent(R2_Label)
+                    .addComponent(R3_Label)
+                    .addComponent(X1_Label)
+                    .addComponent(X2_Label)
+                    .addComponent(X3_Label)
+                    .addComponent(PC_Label)
+                    .addComponent(CC_Label)
+                    .addComponent(IR_Label)
+                    .addComponent(MAR_Label)
+                    .addComponent(MBR_FIeld)
+                    .addComponent(MFR_Label))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(R0_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(R1_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(R2_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(R3_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(X1_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(X2_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(X3_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(PC_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(CC_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(IR_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(MAR_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(MBR_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(MFR_Field, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(295, 295, 295))
+        );
+
+        jPanel1Layout.linkSize(javax.swing.SwingConstants.HORIZONTAL, new java.awt.Component[] {CC_Field, IR_Field, MAR_Field, MBR_Field, MFR_Field, PC_Field, R0_Field, R1_Field, R2_Field, R3_Field, X1_Field, X2_Field, X3_Field});
+
+        jPanel1Layout.setVerticalGroup(
+            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel1Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(R0_Label)
+                    .addComponent(R0_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(R1_Label)
+                    .addComponent(R1_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(R2_Label)
+                    .addComponent(R2_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(R3_Label)
+                    .addComponent(R3_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(X1_Label)
+                    .addComponent(X1_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(X2_Label)
+                    .addComponent(X2_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(X3_Label)
+                    .addComponent(X3_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(18, 18, 18)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(PC_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(PC_Label))
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(CC_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(CC_Label))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(IR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(IR_Label))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(MAR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(MAR_Label))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(MBR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(MBR_FIeld))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(MFR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(MFR_Label))
+                .addContainerGap(68, Short.MAX_VALUE))
+        );
+
+        jTabbedPane1.addTab("tab1", jPanel1);
+
+        cache_area.setColumns(20);
+        cache_area.setRows(5);
+        jScrollPane1.setViewportView(cache_area);
+
+        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
+        jPanel2.setLayout(jPanel2Layout);
+        jPanel2Layout.setHorizontalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 590, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(28, 28, 28))
+        );
+        jPanel2Layout.setVerticalGroup(
+            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel2Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 440, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("tab2", jPanel2);
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
+                .addGap(31, 31, 31)
+                .addComponent(jLabel1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(InputType_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            .addGroup(layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 474, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(49, 49, 49)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGap(10, 10, 10)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(R1_Label)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(R1_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(R0_Label)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(R0_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(R3_Label)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(R3_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(R2_Label)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(R2_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(X1_Label)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(X1_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(X3_Label)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(X3_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(X2_Label)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(X2_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                            .addGroup(layout.createSequentialGroup()
-                                                .addComponent(MAR_Label)
-                                                .addGap(12, 12, 12))
-                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                                .addComponent(IR_Label)
-                                                .addGap(18, 18, 18)))
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(MAR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(IR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(PC_Label)
-                                            .addComponent(CC_Label))
-                                        .addGap(18, 18, 18)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(CC_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(PC_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(MBR_FIeld)
-                                            .addComponent(MFR_Label))
-                                        .addGap(18, 18, 18)
-                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(MFR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(MBR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(33, 33, 33)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(jLabel3)
-                                .addGap(65, 65, 65))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addComponent(Value_Label)
-                                        .addGap(12, 12, 12))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addComponent(AddressLabel)
-                                        .addGap(18, 18, 18)))
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                    .addComponent(Value_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(Address_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                        .addGap(227, 227, 227)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(Instruction_Label)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(Instruction_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(1, 1, 1)
-                                .addComponent(jLabel1)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(InputType_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
                     .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addGroup(layout.createSequentialGroup()
-                            .addGap(35, 35, 35)
-                            .addComponent(OverrideButton)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                            .addGap(23, 23, 23)
                             .addComponent(LoadTest_Button))
                         .addGroup(layout.createSequentialGroup()
-                            .addGap(34, 34, 34)
-                            .addComponent(Override_Checkbox)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                             .addComponent(RunCheckBox)
                             .addGap(18, 18, 18)
-                            .addComponent(StepButton))))
-                .addGap(27, 27, 27))
+                            .addComponent(StepButton)))
+                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(layout.createSequentialGroup()
+                            .addGap(1, 1, 1)
+                            .addComponent(OverrideButton))
+                        .addComponent(Override_Checkbox))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel3)
+                            .addGap(65, 65, 65))
+                        .addGroup(layout.createSequentialGroup()
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(Value_Label)
+                                    .addGap(12, 12, 12))
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                    .addComponent(AddressLabel)
+                                    .addGap(18, 18, 18)))
+                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(Value_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addComponent(Address_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                .addGap(42, 42, 42))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+            .addGroup(layout.createSequentialGroup()
+                .addGap(27, 27, 27)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(InputType_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1))
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(19, 19, 19)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(R0_Label)
-                            .addComponent(R0_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(R1_Label)
-                            .addComponent(R1_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(R2_Label)
-                            .addComponent(R2_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(R3_Label)
-                            .addComponent(R3_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(X1_Label)
-                            .addComponent(X1_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(X2_Label)
-                            .addComponent(X2_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(X3_Label)
-                            .addComponent(X3_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(18, 18, 18)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(PC_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(PC_Label))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(CC_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(CC_Label))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(IR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(IR_Label))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(MAR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(MAR_Label))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(MBR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(MBR_FIeld))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(MFR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(MFR_Label)))
+                        .addGap(40, 40, 40)
+                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 496, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(InputType_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel1))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(Instruction_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(Instruction_Label))))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(54, 54, 54)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(30, 30, 30)
-                                .addComponent(Override_Checkbox)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 13, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(OverrideButton)
-                                    .addComponent(LoadTest_Button))
-                                .addGap(18, 18, 18)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                                    .addComponent(RunCheckBox)
-                                    .addComponent(StepButton)))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(18, 18, 18)
+                        .addGap(83, 83, 83)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -718,8 +738,22 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(Value_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(Value_Label))))
-                .addContainerGap(76, Short.MAX_VALUE))
+                            .addComponent(Value_Label))
+                        .addGap(59, 59, 59)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(30, 30, 30)
+                                .addComponent(Override_Checkbox))
+                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                .addComponent(OverrideButton)
+                                .addGap(30, 30, 30)))
+                        .addGap(48, 48, 48)
+                        .addComponent(LoadTest_Button)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(RunCheckBox)
+                            .addComponent(StepButton))))
+                .addContainerGap(40, Short.MAX_VALUE))
         );
 
         pack();
@@ -788,11 +822,11 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         // TODO add your handling code here:
         if(InputType_Box.getSelectedIndex() == 0)//binary
         {
-            
+            setInputType(inputType.BINARY);
         }
-        else
+        else if(InputType_Box.getSelectedIndex() == 1)//decimal
         {
-            
+            setInputType(inputType.DECIMAL);
         }
     }//GEN-LAST:event_InputType_BoxActionPerformed
 
@@ -986,8 +1020,6 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private javax.swing.JFormattedTextField IR_Field;
     private javax.swing.JLabel IR_Label;
     private javax.swing.JComboBox<String> InputType_Box;
-    private javax.swing.JComboBox<String> Instruction_Box;
-    private javax.swing.JLabel Instruction_Label;
     private javax.swing.JButton LoadTest_Button;
     private javax.swing.JFormattedTextField MAR_Field;
     private javax.swing.JLabel MAR_Label;
@@ -1017,7 +1049,12 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private javax.swing.JLabel X2_Label;
     private javax.swing.JFormattedTextField X3_Field;
     private javax.swing.JLabel X3_Label;
+    private javax.swing.JTextArea cache_area;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel3;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JTabbedPane jTabbedPane1;
     // End of variables declaration//GEN-END:variables
 }

@@ -1,13 +1,16 @@
 
 
+
 public class Instructions {
 	//a useful function to convert binary string to integer
-	public int binary_to_int(String binary_number){
+	static public Integer binary_to_int(String binary_number)
+        {
 		return Integer.parseInt(binary_number, 2);
 	}
 	
 	//another useful function to convert integer into binary string
-	public String int_to_binary(int number){
+	static public String int_to_binary(Integer number)
+        {
 		String binary_number = Integer.toBinaryString(number);
 		return binary_number;
 	}
