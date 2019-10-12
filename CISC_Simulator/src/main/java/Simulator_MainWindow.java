@@ -122,6 +122,20 @@ public class Simulator_MainWindow extends javax.swing.JFrame
       
     private void setInputType(InputType type)
     {
+        if(this.inputType != type)
+        {
+            String oldAddress = Address_Field.getText();
+            String newAddress = "";
+            if(type == InputType.BINARY)
+            {
+                newAddress = intToBinaryString(Integer.decode(oldAddress));
+            }
+            else if(type == InputType.DECIMAL)
+            {
+                newAddress = binaryToIntString(oldAddress);
+            }
+            Address_Field.setText(newAddress);
+        }
         this.inputType = type;
         updateDisplay();
     }
@@ -134,11 +148,19 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     {
         return Instructions.int_to_binary(intval);
     }
+    private String decimalStringtoBinaryString(String decimal)
+    {
+        
+        String binary = intToBinaryString(Integer.decode(decimal));
+        
+        System.out.println(decimal + " = " + binary);
+        return binary;
+    }
     
     public void updateDisplay()
     {
-        String cache_text = "";
-        
+        //update memory cache display
+        String cache_text = "";        
         for(int i = 0; i < memory.MAX_CACHE; i++)
         {
             cache_text = cache_text.concat( (i+1) + ":\t");
@@ -156,10 +178,10 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                 }
             }
             cache_text = cache_text.concat("\n");
-        }
-            
-            cache_area.setText(cache_text);
+        }            
+        cache_area.setText(cache_text);
         
+        //update register display
         if(inputType == InputType.BINARY)
         {
             R0_Field.setText(registers.getR0());
@@ -177,13 +199,10 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             MBR_Field.setText(registers.getMBR());
             MAR_Field.setText(registers.getMAR());
             MFR_Field.setText(registers.getMFR());
-            
-            
-            Value_Field.setText(memory.getMemory(instructions.binary_to_int(Address_Field.getText())));
-            
-            
-
-            
+                     
+            int memoryAddress = instructions.binary_to_int(Address_Field.getText());
+            Value_Field.setText(memory.getMemory(memoryAddress));
+ 
         }
         else if(inputType == InputType.DECIMAL)
         {
@@ -203,8 +222,8 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             MAR_Field.setText(binaryToIntString(registers.getMAR()));
             MFR_Field.setText(binaryToIntString(registers.getMFR()));
             
-            
-            Value_Field.setText(binaryToIntString(memory.getMemory(instructions.binary_to_int(Address_Field.getText()))));
+            int memoryAddress = Integer.decode(Address_Field.getText());
+            Value_Field.setText(binaryToIntString(memory.getMemory(memoryAddress)));
         }
     }
     
@@ -248,62 +267,62 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     this.instructions.STX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
                     break;
-            //jump if zero
-            case 10:
-            		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-            		this.instructions.JZ(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-            		//the pc has changed inside, so we set PC_changed  = true
-            		PC_changed = true;
-            		break;
-            //jump if not equal
-            case 11:
-            		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-            		this.instructions.JNE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-            		//the pc has changed inside, so we set PC_changed  = true
-            		PC_changed = true;
-            		break;
-            //jump if condition code
-            case 12:
-        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-        		this.instructions.JCC(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-        		//the pc has changed inside, so we set PC_changed  = true
-        		PC_changed = true;
-        		break;
-        	//unconditional jump to address
-            case 13:
-        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-        		this.instructions.JMA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-        		//the pc has changed inside, so we set PC_changed  = true
-        		PC_changed = true;
-        		break;
-        	//jump and save return address
-            case 14:
-        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-        		this.instructions.JSR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-        		//the pc has changed inside, so we set PC_changed  = true
-        		PC_changed = true;
-        		break;
-        	//return from subroutine with return code as immediate portion stored in the instructions' address field
-            case 15:
-        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-        		this.instructions.RFS(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-        		//the pc has changed inside, so we set PC_changed  = true
-        		PC_changed = true;
-        		break;
-        	//subtract one and branch
-            case 16:
-        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-        		this.instructions.SOB(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-        		//the pc has changed inside, so we set PC_changed  = true
-        		PC_changed = true;
-        		break;
-        	//jump greater than or equal to
-            case 17:
-        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-        		this.instructions.JGE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-        		//the pc has changed inside, so we set PC_changed  = true
-        		PC_changed = true;
-        		break;
+//            //jump if zero
+//            case 10:
+//            		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+//            		this.instructions.JZ(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+//            		//the pc has changed inside, so we set PC_changed  = true
+//            		PC_changed = true;
+//            		break;
+//            //jump if not equal
+//            case 11:
+//            		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+//            		this.instructions.JNE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+//            		//the pc has changed inside, so we set PC_changed  = true
+//            		PC_changed = true;
+//            		break;
+//            //jump if condition code
+//            case 12:
+//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+//        		this.instructions.JCC(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+//        		//the pc has changed inside, so we set PC_changed  = true
+//        		PC_changed = true;
+//        		break;
+//        	//unconditional jump to address
+//            case 13:
+//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+//        		this.instructions.JMA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+//        		//the pc has changed inside, so we set PC_changed  = true
+//        		PC_changed = true;
+//        		break;
+//        	//jump and save return address
+//            case 14:
+//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+//        		this.instructions.JSR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+//        		//the pc has changed inside, so we set PC_changed  = true
+//        		PC_changed = true;
+//        		break;
+//        	//return from subroutine with return code as immediate portion stored in the instructions' address field
+//            case 15:
+//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+//        		this.instructions.RFS(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+//        		//the pc has changed inside, so we set PC_changed  = true
+//        		PC_changed = true;
+//        		break;
+//        	//subtract one and branch
+//            case 16:
+//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+//        		this.instructions.SOB(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+//        		//the pc has changed inside, so we set PC_changed  = true
+//        		PC_changed = true;
+//        		break;
+//        	//jump greater than or equal to
+//            case 17:
+//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+//        		this.instructions.JGE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+//        		//the pc has changed inside, so we set PC_changed  = true
+//        		PC_changed = true;
+//        		break;
             default:
                     break;
             }
@@ -318,16 +337,24 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         System.out.println(registers.getPC());
         System.out.println(registers.getMAR());
         
-        	
+        String output = "";
+        while(io.hasOutput())
+        {
+            output += io.getNextOutput();
+        }
+        io_area.append(output);
+        updateDisplay();
+        
+        
+        
+        
         if(RunCheckBox.isSelected())
         {
             Timer timer = new Timer();
             ClockCycler cycler = new ClockCycler(this);
             timer.schedule(cycler, CYCLE_TIME);
         }
-        
-        updateDisplay();
-        
+           
     }
     
     
@@ -386,9 +413,10 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         jScrollPane1 = new javax.swing.JScrollPane();
         cache_area = new javax.swing.JTextArea();
         jScrollPane2 = new javax.swing.JScrollPane();
-        user_input_area = new javax.swing.JTextArea();
-        load_p1_button = new javax.swing.JButton();
-        load_p2_button = new javax.swing.JButton();
+        io_area = new javax.swing.JTextArea();
+        load_program1_button = new javax.swing.JButton();
+        load_program2_button = new javax.swing.JButton();
+        jLabel2 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -713,14 +741,13 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(MFR_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(MFR_Label))
-                .addContainerGap(68, Short.MAX_VALUE))
+                .addContainerGap(25, Short.MAX_VALUE))
         );
 
         jTabbedPane1.addTab("Registers", jPanel1);
 
         cache_area.setColumns(20);
         cache_area.setRows(5);
-        cache_area.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         jScrollPane1.setViewportView(cache_area);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -729,51 +756,56 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(300, 300, 300))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 299, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(319, 319, 319))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel2Layout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 440, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 397, Short.MAX_VALUE)
                 .addContainerGap())
         );
 
         jTabbedPane1.addTab("Cache", jPanel2);
 
-        user_input_area.setBackground(new java.awt.Color(0, 0, 0));
-        user_input_area.setColumns(20);
-        user_input_area.setForeground(new java.awt.Color(255, 255, 0));
-        user_input_area.setLineWrap(true);
-        user_input_area.setRows(5);
-        user_input_area.addKeyListener(new java.awt.event.KeyAdapter()
+        jScrollPane2.setBackground(new java.awt.Color(0, 0, 0));
+
+        io_area.setBackground(new java.awt.Color(0, 0, 0));
+        io_area.setColumns(20);
+        io_area.setForeground(new java.awt.Color(255, 255, 0));
+        io_area.setLineWrap(true);
+        io_area.setRows(5);
+        io_area.setWrapStyleWord(true);
+        io_area.addKeyListener(new java.awt.event.KeyAdapter()
         {
             public void keyTyped(java.awt.event.KeyEvent evt)
             {
-                user_input_areaKeyTyped(evt);
+                io_areaKeyTyped(evt);
             }
         });
-        jScrollPane2.setViewportView(user_input_area);
+        jScrollPane2.setViewportView(io_area);
 
-        load_p1_button.setText("Load Program 1");
-        load_p1_button.addActionListener(new java.awt.event.ActionListener()
+        load_program1_button.setText("Load Program 1");
+        load_program1_button.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                load_p1_buttonActionPerformed(evt);
+                load_program1_buttonActionPerformed(evt);
             }
         });
 
-        load_p2_button.setText("Load Program 2");
-        load_p2_button.setEnabled(false);
-        load_p2_button.addActionListener(new java.awt.event.ActionListener()
+        load_program2_button.setText("Load Program 2");
+        load_program2_button.setEnabled(false);
+        load_program2_button.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
             {
-                load_p2_buttonActionPerformed(evt);
+                load_program2_buttonActionPerformed(evt);
             }
         });
+
+        jLabel2.setText("Operator Console");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
@@ -787,24 +819,21 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(InputType_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(30, 30, 30)
+                        .addGap(48, 48, 48)
+                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 324, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(61, 61, 61)
+                        .addComponent(OverrideButton)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(Override_Checkbox)))
+                .addGap(18, 18, 18)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(RunCheckBox)
-                                    .addGap(18, 18, 18)
-                                    .addComponent(StepButton)
-                                    .addGap(6, 6, 6))
+                            .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(layout.createSequentialGroup()
-                                        .addGap(1, 1, 1)
-                                        .addComponent(OverrideButton))
-                                    .addComponent(Override_Checkbox))
-                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(jLabel3)
                                         .addGap(65, 65, 65))
                                     .addGroup(layout.createSequentialGroup()
@@ -816,32 +845,46 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                                                 .addComponent(AddressLabel)
                                                 .addGap(18, 18, 18)))
                                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                            .addComponent(Value_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                            .addComponent(Address_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                                            .addComponent(Value_Field)
+                                            .addComponent(Address_Field))))
+                                .addGap(145, 145, 145))
                             .addGroup(layout.createSequentialGroup()
-                                .addComponent(LoadTest_Button)
-                                .addGap(18, 18, 18)
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(load_p2_button)
-                                    .addComponent(load_p1_button)))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(16, 16, 16)
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap(72, Short.MAX_VALUE))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addComponent(LoadTest_Button)
+                                        .addGap(51, 51, 51)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(load_program2_button)
+                                            .addComponent(load_program1_button)))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(10, 10, 10)
+                                        .addComponent(RunCheckBox)
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addComponent(jLabel2)
+                                            .addComponent(StepButton))))
+                                .addGap(16, 16, 16)))
+                        .addGap(27, 27, 27))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 327, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
                 .addGap(27, 27, 27)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(InputType_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1))
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(40, 40, 40)
-                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 496, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(InputType_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jLabel1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 453, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(18, 18, 18)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(OverrideButton)
+                            .addComponent(Override_Checkbox)))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(14, 14, 14)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -851,27 +894,21 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(Value_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(Value_Label))
-                        .addGap(59, 59, 59)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addGap(30, 30, 30)
-                                .addComponent(Override_Checkbox))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                .addComponent(OverrideButton)
-                                .addGap(30, 30, 30)))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGap(121, 121, 121)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(LoadTest_Button)
-                            .addComponent(load_p1_button))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(load_p2_button)
-                        .addGap(25, 25, 25)
+                            .addComponent(load_program1_button))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(load_program2_button)
+                        .addGap(21, 21, 21)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(RunCheckBox)
                             .addComponent(StepButton))
-                        .addGap(36, 36, 36)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(40, Short.MAX_VALUE))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(67, Short.MAX_VALUE))
         );
 
         pack();
@@ -926,7 +963,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void Address_FieldActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_Address_FieldActionPerformed
     {//GEN-HEADEREND:event_Address_FieldActionPerformed
         // TODO add your handling code here:
-        Value_Field.setText(memory.getMemory(instructions.binary_to_int(Address_Field.getText())));
+        updateDisplay();
         
     }//GEN-LAST:event_Address_FieldActionPerformed
 
@@ -996,6 +1033,9 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void OverrideButtonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_OverrideButtonActionPerformed
     {//GEN-HEADEREND:event_OverrideButtonActionPerformed
         // TODO add your handling code here:
+        
+
+        
         if(OverrideButton.isEnabled())
         {
             if(inputType == InputType.BINARY)
@@ -1015,12 +1055,38 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                 registers.setMBR(MBR_Field.getText());
                 registers.setMAR(MAR_Field.getText());
                 registers.setMFR(MFR_Field.getText());
+                
+
 
 
                 memory.setMemory(instructions.binary_to_int(Address_Field.getText()), Value_Field.getText());
 
             }
+             else if(inputType == InputType.DECIMAL)
+            {
+                registers.setR0(decimalStringtoBinaryString(R0_Field.getText()));
+                registers.setR1(decimalStringtoBinaryString(R1_Field.getText()));
+                registers.setR2(decimalStringtoBinaryString(R2_Field.getText()));
+                registers.setR3(decimalStringtoBinaryString(R3_Field.getText()));
+
+                registers.setX1(decimalStringtoBinaryString(X1_Field.getText()));
+                registers.setX2(decimalStringtoBinaryString(X2_Field.getText()));
+                registers.setX3(decimalStringtoBinaryString(X3_Field.getText()));
+
+                registers.setPC(decimalStringtoBinaryString(PC_Field.getText()));
+                //registers.setCC(decimalStringtoBinaryString(CC_Field.getText()));
+                registers.setIR(decimalStringtoBinaryString(IR_Field.getText()));
+                registers.setMBR(decimalStringtoBinaryString(MBR_Field.getText()));
+                registers.setMAR(decimalStringtoBinaryString(MAR_Field.getText()));
+                registers.setMFR(decimalStringtoBinaryString(MFR_Field.getText()));
+
+                int memoryAddress = Integer.decode(Address_Field.getText());
+                String memoryValue = intToBinaryString(Integer.decode(Value_Field.getText()));
+                memory.setMemory(memoryAddress, memoryValue);
+            }
         }
+       
+        
     }//GEN-LAST:event_OverrideButtonActionPerformed
 
     private void Override_CheckboxActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_Override_CheckboxActionPerformed
@@ -1093,18 +1159,23 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         
     }//GEN-LAST:event_user_input_areaKeyTyped
 
-    private void load_p1_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_p1_buttonActionPerformed
-    {//GEN-HEADEREND:event_load_p1_buttonActionPerformed
+    private void io_areaKeyTyped(java.awt.event.KeyEvent evt)//GEN-FIRST:event_io_areaKeyTyped
+    {//GEN-HEADEREND:event_io_areaKeyTyped
         // TODO add your handling code here:
+        System.out.print(evt.getKeyChar());
+        io.pushInput(Character.toString(evt.getKeyChar()));
         
-    }//GEN-LAST:event_load_p1_buttonActionPerformed
+    }//GEN-LAST:event_io_areaKeyTyped
 
-    private void load_p2_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_p2_buttonActionPerformed
-    {//GEN-HEADEREND:event_load_p2_buttonActionPerformed
+    private void load_program2_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_program2_buttonActionPerformed
+    {//GEN-HEADEREND:event_load_program2_buttonActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_load_p2_buttonActionPerformed
+    }//GEN-LAST:event_load_program2_buttonActionPerformed
 
-  
+    private void load_program1_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_program1_buttonActionPerformed
+    {//GEN-HEADEREND:event_load_program1_buttonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_load_program1_buttonActionPerformed
     
     
     /**
@@ -1195,15 +1266,16 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private javax.swing.JFormattedTextField X3_Field;
     private javax.swing.JLabel X3_Label;
     private javax.swing.JTextArea cache_area;
+    private javax.swing.JTextArea io_area;
     private javax.swing.JLabel jLabel1;
+    private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
-    private javax.swing.JButton load_p1_button;
-    private javax.swing.JButton load_p2_button;
-    private javax.swing.JTextArea user_input_area;
+    private javax.swing.JButton load_program1_button;
+    private javax.swing.JButton load_program2_button;
     // End of variables declaration//GEN-END:variables
 }

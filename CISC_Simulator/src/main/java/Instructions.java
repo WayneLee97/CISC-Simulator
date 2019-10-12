@@ -3,6 +3,31 @@
 public class Instructions {
     public static final int OVERFLOW_MAX = 32767;
     public static final int UNDERFLOW_MIN = -32768;
+    
+    private static Instructions inst = null;
+    private Registers registers;
+    private Memory mm;
+    private IOHandler io;
+    
+    //singleton constructor
+    private Instructions()
+    {
+        registers = Registers.instance();
+        mm = Memory.instance();
+        io = IOHandler.instance();
+    }
+    
+    //returns the singelton instance
+    public static Instructions instance()
+    {
+        if(inst == null)
+        {
+            inst = new Instructions();
+        }
+
+        return inst;
+    }
+    
     //a useful function to convert binary string to integer
     static public Integer binary_to_int(String binary_number)
     {
@@ -24,6 +49,21 @@ public class Instructions {
            return Integer.parseInt(binary_number, 2);
         }
     }
+    
+    //convert a char to a 16bit binary number
+    public String characterToBinary(String character)
+    {
+        int decimal = character.charAt(0);
+        return int_to_binary(decimal);
+    }
+    
+    //convert a 16bit binary number to a char
+    public String binaryToCharacter(String binary)
+    {
+        int val = binary_to_int(binary);
+        return Character.toString((char)val);
+    }
+    
     //check overflow or underflow
     private boolean checkOverUnderFlow(Registers registers, int number) {
         if (number > OVERFLOW_MAX) {
@@ -44,7 +84,6 @@ public class Instructions {
         return binary_number;
     }
     //get high order bits when overflow/underflow.
-        private static Instructions inst = null;
     private String getHighOrderBits(Integer number) {
         String binary_number = Integer.toBinaryString(number);
         return binary_number.substring(0, 16);
@@ -556,4 +595,78 @@ public class Instructions {
             registers.setR3(notOperation(registers.getR3()));
         }
     }
+    
+    
+
+        //loads a single character from the input buffer into the indicated
+        //register
+        public void IN(String instruction)
+        {
+            
+            int devID = binary_to_int(instruction.substring(11,16));
+            if(devID == 0 && io.hasInput())
+            {
+                String input = characterToBinary(io.getNextInput());
+                
+                
+                if(instruction.substring(6, 8).equals("00"))
+                {//R0
+                    registers.setR0(input);
+		}
+                else if(instruction.substring(6, 8).equals("01"))
+                {//R1
+                    registers.setR1(input);
+		}
+                else if(instruction.substring(6, 8).equals("10"))
+                {//R2
+                    registers.setR2(input);
+		}
+                else if(instruction.substring(6, 8).equals("11"))
+                {//R3
+                    registers.setR3(input);
+		}
+            }
+            else
+            {
+                //@TODO: Error?
+            }
+        }
+        
+        //loads a single character into the output buffer into the indicated
+        //register
+        public void OUT(String instruction)
+        {
+                        
+            int devID = binary_to_int(instruction.substring(11,16));
+            if(devID == 1 && io.hasInput())
+            {
+                String output = "";
+                String binary = "";
+                
+                if(instruction.substring(6, 8).equals("00"))
+                {//R0
+                    binary = registers.getR0();
+		}
+                else if(instruction.substring(6, 8).equals("01"))
+                {//R1
+                    binary = registers.getR1();
+		}
+                else if(instruction.substring(6, 8).equals("10"))
+                {//R2
+                    binary = registers.getR2();
+		}
+                else if(instruction.substring(6, 8).equals("11"))
+                {//R3
+                    binary = registers.getR3();
+		}
+                
+                output = binaryToCharacter(binary);
+                io.pushOutput(output);
+            }
+            else
+            {
+                //@TODO: Error?
+            }
+        }
+    
 }
