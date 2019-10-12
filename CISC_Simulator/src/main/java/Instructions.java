@@ -44,6 +44,7 @@ public class Instructions {
         return binary_number;
     }
     //get high order bits when overflow/underflow.
+        private static Instructions inst = null;
     private String getHighOrderBits(Integer number) {
         String binary_number = Integer.toBinaryString(number);
         return binary_number.substring(0, 16);

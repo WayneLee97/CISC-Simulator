@@ -1,4 +1,6 @@
 
+
+
 import java.util.ArrayList;
 import java.util.Map;
 import javax.swing.JFormattedTextField;
@@ -50,6 +52,8 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private Registers registers;
     private Memory memory;
     private Instructions instructions;
+    private IOHandler io;
+    
     private int cycleCount = 0;
     
     //private Map<JFormattedTextField,Word> wordMap;
@@ -62,17 +66,20 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     /**
      * Creates new form Simulator_MainWindow
      */
-    public Simulator_MainWindow(Registers reg, Memory mem, Instructions instruct)
+    public Simulator_MainWindow()
     {
         initComponents();
         
-        registers = reg;
-        memory = mem;
+        registers = Registers.instance();
+        memory = Memory.instance();
+        instructions = Instructions.instance();
+        io = IOHandler.instance();
+        
         for(int i = 0; i < 2048; i++)
         {
             memory.setMemory(i, ZEROED_REGISTER);
         }
-        instructions = instruct;
+        
         
         wordFields = new ArrayList<JFormattedTextField>();
         //Add fields to list and map
@@ -378,6 +385,10 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         cache_area = new javax.swing.JTextArea();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        user_input_area = new javax.swing.JTextArea();
+        load_p1_button = new javax.swing.JButton();
+        load_p2_button = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -705,10 +716,11 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                 .addContainerGap(68, Short.MAX_VALUE))
         );
 
-        jTabbedPane1.addTab("tab1", jPanel1);
+        jTabbedPane1.addTab("Registers", jPanel1);
 
         cache_area.setColumns(20);
         cache_area.setRows(5);
+        cache_area.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         jScrollPane1.setViewportView(cache_area);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
@@ -717,8 +729,8 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 590, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(28, 28, 28))
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 318, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(300, 300, 300))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -728,53 +740,94 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                 .addContainerGap())
         );
 
-        jTabbedPane1.addTab("tab2", jPanel2);
+        jTabbedPane1.addTab("Cache", jPanel2);
+
+        user_input_area.setBackground(new java.awt.Color(0, 0, 0));
+        user_input_area.setColumns(20);
+        user_input_area.setForeground(new java.awt.Color(255, 255, 0));
+        user_input_area.setLineWrap(true);
+        user_input_area.setRows(5);
+        user_input_area.addKeyListener(new java.awt.event.KeyAdapter()
+        {
+            public void keyTyped(java.awt.event.KeyEvent evt)
+            {
+                user_input_areaKeyTyped(evt);
+            }
+        });
+        jScrollPane2.setViewportView(user_input_area);
+
+        load_p1_button.setText("Load Program 1");
+        load_p1_button.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                load_p1_buttonActionPerformed(evt);
+            }
+        });
+
+        load_p2_button.setText("Load Program 2");
+        load_p2_button.setEnabled(false);
+        load_p2_button.addActionListener(new java.awt.event.ActionListener()
+        {
+            public void actionPerformed(java.awt.event.ActionEvent evt)
+            {
+                load_p2_buttonActionPerformed(evt);
+            }
+        });
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(layout.createSequentialGroup()
-                .addGap(31, 31, 31)
-                .addComponent(jLabel1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(InputType_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 474, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 43, Short.MAX_VALUE)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(23, 23, 23)
-                            .addComponent(LoadTest_Button))
-                        .addGroup(layout.createSequentialGroup()
-                            .addComponent(RunCheckBox)
-                            .addGap(18, 18, 18)
-                            .addComponent(StepButton)))
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(layout.createSequentialGroup()
-                            .addGap(1, 1, 1)
-                            .addComponent(OverrideButton))
-                        .addComponent(Override_Checkbox))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel3)
-                            .addGap(65, 65, 65))
-                        .addGroup(layout.createSequentialGroup()
-                            .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                .addGroup(layout.createSequentialGroup()
-                                    .addComponent(Value_Label)
-                                    .addGap(12, 12, 12))
-                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                    .addComponent(AddressLabel)
-                                    .addGap(18, 18, 18)))
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGap(31, 31, 31)
+                        .addComponent(jLabel1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(InputType_Box, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(layout.createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 361, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(30, 30, 30)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                                .addComponent(Value_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addComponent(Address_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
-                .addGap(42, 42, 42))
+                                .addGroup(layout.createSequentialGroup()
+                                    .addComponent(RunCheckBox)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(StepButton)
+                                    .addGap(6, 6, 6))
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGap(1, 1, 1)
+                                        .addComponent(OverrideButton))
+                                    .addComponent(Override_Checkbox))
+                                .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 71, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(jLabel3)
+                                        .addGap(65, 65, 65))
+                                    .addGroup(layout.createSequentialGroup()
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                            .addGroup(layout.createSequentialGroup()
+                                                .addComponent(Value_Label)
+                                                .addGap(12, 12, 12))
+                                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
+                                                .addComponent(AddressLabel)
+                                                .addGap(18, 18, 18)))
+                                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                            .addComponent(Value_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                            .addComponent(Address_Field, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))))
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(LoadTest_Button)
+                                .addGap(18, 18, 18)
+                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(load_p2_button)
+                                    .addComponent(load_p1_button)))
+                            .addGroup(layout.createSequentialGroup()
+                                .addGap(16, 16, 16)
+                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap(72, Short.MAX_VALUE))
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -788,7 +841,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                         .addGap(40, 40, 40)
                         .addComponent(jTabbedPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 496, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(83, 83, 83)
+                        .addGap(14, 14, 14)
                         .addComponent(jLabel3)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -806,12 +859,18 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                                 .addComponent(OverrideButton)
                                 .addGap(30, 30, 30)))
-                        .addGap(48, 48, 48)
-                        .addComponent(LoadTest_Button)
-                        .addGap(18, 18, 18)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(LoadTest_Button)
+                            .addComponent(load_p1_button))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(load_p2_button)
+                        .addGap(25, 25, 25)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(RunCheckBox)
-                            .addComponent(StepButton))))
+                            .addComponent(StepButton))
+                        .addGap(36, 36, 36)
+                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(40, Short.MAX_VALUE))
         );
 
@@ -1016,6 +1075,35 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     	registers.setPC("0000000000001010");
     }//GEN-LAST:event_LoadTest_ButtonActionPerformed
 
+
+    
+    private void user_input_areaKeyTyped(java.awt.event.KeyEvent evt)//GEN-FIRST:event_user_input_areaKeyTyped
+    {//GEN-HEADEREND:event_user_input_areaKeyTyped
+        // TODO add your handling code here:
+        System.out.print(evt.getKeyChar());
+        io.pushInput(Character.toString(evt.getKeyChar()));
+        
+        // "\nEnter a number : "
+        // "\nNumber list = {"
+        // "}"
+        // "\nEnter a number to search the list for : "
+        //
+        
+        
+        
+    }//GEN-LAST:event_user_input_areaKeyTyped
+
+    private void load_p1_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_p1_buttonActionPerformed
+    {//GEN-HEADEREND:event_load_p1_buttonActionPerformed
+        // TODO add your handling code here:
+        
+    }//GEN-LAST:event_load_p1_buttonActionPerformed
+
+    private void load_p2_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_p2_buttonActionPerformed
+    {//GEN-HEADEREND:event_load_p2_buttonActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_load_p2_buttonActionPerformed
+
   
     
     
@@ -1063,10 +1151,8 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         {
             public void run()
             {
-                Registers registers = new Registers();
-                Memory mm = new Memory();//remember the first 6 addresses are preserved
-                Instructions instruction = new Instructions();
-                new Simulator_MainWindow(registers,mm,instruction).setVisible(true);
+ 
+                new Simulator_MainWindow().setVisible(true);
             }
         });
     }
@@ -1114,6 +1200,10 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTabbedPane jTabbedPane1;
+    private javax.swing.JButton load_p1_button;
+    private javax.swing.JButton load_p2_button;
+    private javax.swing.JTextArea user_input_area;
     // End of variables declaration//GEN-END:variables
 }
