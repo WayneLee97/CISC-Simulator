@@ -14,6 +14,27 @@ public class Instructions {
 		String binary_number = Integer.toBinaryString(number);
 		return binary_number;
 	}
+        
+        private static Instructions inst = null;
+        private Registers registers;
+        private Memory mm;
+        private IOHandler io;
+        private Instructions()
+        {
+            registers = Registers.instance();
+            mm = Memory.instance();
+            io = IOHandler.instance();
+        }
+        public static Instructions instance()
+        {
+            if(inst == null)
+            {
+                inst = new Instructions();
+            }
+            
+            return inst;
+        }
+        
 	
 	//function to calculate the effective address
 	public int EA_calculator(String instruction, Registers registers, Memory mm){
@@ -171,4 +192,82 @@ public class Instructions {
 			mm.setMemory(EA, registers.getX3());
 		}
 	}
+        
+        public String characterToBinary(String character)
+        {
+            int decimal = character.charAt(0);
+            return int_to_binary(decimal);
+        }
+        public String binaryToCharacter(String binary)
+        {
+            int val = binary_to_int(binary);
+            return Character.toString((char)val);
+        }
+        
+        public void IN(String instruction)
+        {
+            
+            int devID = binary_to_int(instruction.substring(11,16));
+            if(devID == 0 && io.hasInput())
+            {
+                String input = characterToBinary(io.getNextInput());
+                
+                
+                if(instruction.substring(6, 8).equals("00"))
+                {//R0
+                    registers.setR0(input);
+		}
+                else if(instruction.substring(6, 8).equals("01"))
+                {//R1
+                    registers.setR1(input);
+		}
+                else if(instruction.substring(6, 8).equals("10"))
+                {//R2
+                    registers.setR2(input);
+		}
+                else if(instruction.substring(6, 8).equals("11"))
+                {//R3
+                    registers.setR3(input);
+		}
+            }
+            else
+            {
+                //@TODO: Error?
+            }
+        }
+        public void OUT(String instruction)
+        {
+                        
+            int devID = binary_to_int(instruction.substring(11,16));
+            if(devID == 1 && io.hasInput())
+            {
+                String output = "";
+                String binary = "";
+                
+                if(instruction.substring(6, 8).equals("00"))
+                {//R0
+                    binary = registers.getR0();
+		}
+                else if(instruction.substring(6, 8).equals("01"))
+                {//R1
+                    binary = registers.getR1();
+		}
+                else if(instruction.substring(6, 8).equals("10"))
+                {//R2
+                    binary = registers.getR2();
+		}
+                else if(instruction.substring(6, 8).equals("11"))
+                {//R3
+                    binary = registers.getR3();
+		}
+                
+                output = binaryToCharacter(binary);
+                io.pushOutput(output);
+            }
+            else
+            {
+                //@TODO: Error?
+            }
+        }
+        
 }

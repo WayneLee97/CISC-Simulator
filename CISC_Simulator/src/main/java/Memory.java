@@ -1,22 +1,31 @@
 import java.util.LinkedHashMap;
 import java.util.Set;
+//import static Utilities.*;
 
 public class Memory 
 {
 	private String memory[];
         private LinkedHashMap<Integer,String> cache;
         public final int MAX_CACHE = 16;
-	//construct function by default
-	Memory()
+	public final int MEMORY_SIZE = 2048;
+        
+        private static Memory inst = null;
+	private Memory()
         {
-		memory = new String[2048];
-                cache = new LinkedHashMap<Integer,String>();
+            memory = new String[MEMORY_SIZE];
+            cache = new LinkedHashMap<Integer,String>();
 	}
-	//expend memory
-	Memory(int size)
+        
+        public static Memory instance()
         {
-		memory = new String[size];
-	}
+            if(inst == null)
+            {
+                inst = new Memory();
+            }
+            
+            return inst;
+        }
+
 	//setter and getter
 	public String getMemory(int address) 
         {
@@ -34,13 +43,15 @@ public class Memory
 	}
 	public void setMemory(int address, String content) 
         {
-		this.memory[address] = content;
+            if(cache.containsKey(address))
+            {
+                cache.put(address,content);
+            }
+            this.memory[address] = content;
 	}
         
         public String printCache()
         {
-
-            
             return cache.toString();
         }
         
@@ -48,5 +59,19 @@ public class Memory
         {
             return cache;
         }
+        
+//    public void writeStringToMemory(int startAddress, String str)
+//    {
+//        int size = str.length();
+//        
+//        int currentAddress = startAddress;
+//        memory.setMemory(currentAddress, intToBinaryString(size));
+//        currentAddress++;
+//        for(int i = 0; i < size; i++)
+//        {
+//            memory.setMemory(currentAddress, intToBinaryString(str.charAt(i)));
+//            currentAddress++;           
+//        }
+//    }
         
 }
