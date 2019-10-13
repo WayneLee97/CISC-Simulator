@@ -1,6 +1,4 @@
 
-
-
 import java.util.ArrayList;
 import java.util.Map;
 import javax.swing.JFormattedTextField;
@@ -13,124 +11,182 @@ import java.util.TimerTask;
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 /**
  *
  * @author Jonathan Pritchett
  */
-
-
 class ClockCycler extends TimerTask
 {
+
     private Simulator_MainWindow parent;
 
     ClockCycler(Simulator_MainWindow parent)
     {
         this.parent = parent;
     }
-    
+
     public void run()
     {
         parent.cycle();
     }
 }
 
+enum I
+{
+    LDR(1),STR(2),LDA(3),LDX(41),STX(42),
+    JZ(10),JNE(11),JCC(12),JMA(13),JSR(14),RFS(15),SOB(16),JGE(17),
+    AMR(4),SMR(5),AIR(6),SIR(7),MLT(20),DVD(21),
+    TRR(22),AND(23),ORR(24),NOT(25),
+    SRC(31),RRC(32),
+    IN(61),OUT(62);
+    
+    private int opCode;
+    private I(int opCode)
+    {
+        this.opCode = opCode;
+    }
+    
+    public String toString()
+    {
+        return Instructions.int_to_binary_xbits(opCode,6);
+    }
+    
+}
+
+enum R
+{
+    R0(0),R1(1),R2(2),R3(3);
+    
+    private int opCode;
+    private R(int opCode)
+    {
+        this.opCode = opCode;
+    }
+    
+    public String toString()
+    {
+        return Instructions.int_to_binary_xbits(opCode,2);
+    }
+}
+
+enum X
+{
+    X0(0),X1(1),X2(2),X3(3);
+    
+    private int opCode;
+    private X(int opCode)
+    {
+        this.opCode = opCode;
+    }
+    
+    public String toString()
+    {
+        return Instructions.int_to_binary_xbits(opCode,2);
+    }
+}
 
 
 
 public class Simulator_MainWindow extends javax.swing.JFrame
 {
+    
     static final String ZEROED_REGISTER = "0000000000000000";
     static final int CYCLE_TIME = 1000;
-    
-    
-    
+
     private InputType inputType = InputType.BINARY;
-    
+
     private ArrayList<JFormattedTextField> wordFields;
-    
+
     private Registers registers;
     private Memory memory;
     private Instructions instructions;
     private IOHandler io;
-    
-    private int cycleCount = 0;
-    
-    //private Map<JFormattedTextField,Word> wordMap;
 
-    public static int op_translator(String S_instruction, Instructions instruction){
-		String op_code = S_instruction.substring(0, 6);
-		return instruction.binary_to_int(op_code);
-	}
+    private int cycleCount = 0;
+    private Boolean p1_active = false;
+    private Boolean p1_firstTime = true;
+
+    //private Map<JFormattedTextField,Word> wordMap;
+    public static int op_translator(String S_instruction, Instructions instruction)
+    {
+        String op_code = S_instruction.substring(0, 6);
+        return instruction.binary_to_int(op_code);
+    }
     
+    public static String makeInstruction(I instruction,R register, X index, int indirect, int address)
+    {
+       
+       return instruction.toString()
+               + register.toString()
+               + index.toString()
+               + Instructions.int_to_binary_xbits(indirect, 1)
+               + Instructions.int_to_binary_xbits(address, 5);
+    }
+
     /**
      * Creates new form Simulator_MainWindow
      */
     public Simulator_MainWindow()
     {
         initComponents();
-        
+
         registers = Registers.instance();
         memory = Memory.instance();
         instructions = Instructions.instance();
         io = IOHandler.instance();
-        
-        for(int i = 0; i < 2048; i++)
+
+        for (int i = 0; i < 2048; i++)
         {
             memory.setMemory(i, ZEROED_REGISTER);
         }
-        
-        
+
         wordFields = new ArrayList<JFormattedTextField>();
         //Add fields to list and map
         wordFields.add(R0_Field);
         wordFields.add(R1_Field);
         wordFields.add(R2_Field);
         wordFields.add(R3_Field);
-        
+
         wordFields.add(X1_Field);
         wordFields.add(X2_Field);
         wordFields.add(X3_Field);
-        
+
         wordFields.add(PC_Field);
         wordFields.add(CC_Field);
         wordFields.add(IR_Field);
         wordFields.add(MAR_Field);
         wordFields.add(MBR_Field);
         wordFields.add(MFR_Field);
-        
-        
+
         wordFields.add(Address_Field);
         wordFields.add(Value_Field);
-        
-        
-        for(JFormattedTextField field : wordFields)
+
+        for (JFormattedTextField field : wordFields)
         {
             field.setText(ZEROED_REGISTER);
             //field.setEnabled(false);
         }
         OverrideButtonActionPerformed(null);
-        
+
         this.setInputType(inputType.BINARY);
         //this.cycle();
         Timer timer = new Timer();
         ClockCycler cycler = new ClockCycler(this);
         timer.schedule(cycler, CYCLE_TIME);
-        
+
     }
-    
-      
+
     private void setInputType(InputType type)
     {
-        if(this.inputType != type)
+        if (this.inputType != type)
         {
             String oldAddress = Address_Field.getText();
             String newAddress = "";
-            if(type == InputType.BINARY)
+            if (type == InputType.BINARY)
             {
                 newAddress = intToBinaryString(Integer.decode(oldAddress));
             }
-            else if(type == InputType.DECIMAL)
+            else if (type == InputType.DECIMAL)
             {
                 newAddress = binaryToIntString(oldAddress);
             }
@@ -139,225 +195,297 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         this.inputType = type;
         updateDisplay();
     }
-    
+
     private String binaryToIntString(String binary)
     {
         return Instructions.binary_to_int(binary).toString();
     }
+
     private String intToBinaryString(int intval)
     {
-        return Instructions.int_to_binary(intval);
+        return intToBinaryString(intval,16);
     }
+    private String intToBinaryString(int intval, int numBits)
+    {
+        return Instructions.int_to_binary_xbits(intval, numBits);
+    }
+
     private String decimalStringtoBinaryString(String decimal)
     {
-        
+
         String binary = intToBinaryString(Integer.decode(decimal));
-        
+
         System.out.println(decimal + " = " + binary);
         return binary;
     }
-    
+
     public void updateDisplay()
     {
         //update memory cache display
-        String cache_text = "";        
-        for(int i = 0; i < memory.MAX_CACHE; i++)
+        String cache_text = "";
+        for (int i = 0; i < memory.MAX_CACHE; i++)
         {
-            cache_text = cache_text.concat( (i+1) + ":\t");
-            if(i < memory.getCache().size())
+            cache_text = cache_text.concat((i + 1) + ":\t");
+            if (i < memory.getCache().size())
             {
-                if(inputType == InputType.BINARY)
+                if (inputType == InputType.BINARY)
                 {
-                    cache_text = cache_text.concat(intToBinaryString((Integer)memory.getCache().keySet().toArray()[i]) + "\t");
+                    cache_text = cache_text.concat(intToBinaryString((Integer) memory.getCache().keySet().toArray()[i]) + "\t");
                     cache_text = cache_text.concat(memory.getCache().values().toArray()[i].toString());
                 }
-                else if(inputType == InputType.DECIMAL)
+                else if (inputType == InputType.DECIMAL)
                 {
                     cache_text = cache_text.concat(memory.getCache().keySet().toArray()[i] + "\t");
                     cache_text = cache_text.concat(binaryToIntString(memory.getCache().values().toArray()[i].toString()));
                 }
             }
             cache_text = cache_text.concat("\n");
-        }            
+        }
         cache_area.setText(cache_text);
-        
+
         //update register display
-        if(inputType == InputType.BINARY)
+        if (inputType == InputType.BINARY)
         {
             R0_Field.setText(registers.getR0());
             R1_Field.setText(registers.getR1());
             R2_Field.setText(registers.getR2());
             R3_Field.setText(registers.getR3());
-            
+
             X1_Field.setText(registers.getX1());
             X2_Field.setText(registers.getX2());
             X3_Field.setText(registers.getX3());
-            
+
             PC_Field.setText(registers.getPC());
             //CC_Field.setText(registers.getCC());
             IR_Field.setText(registers.getIR());
             MBR_Field.setText(registers.getMBR());
             MAR_Field.setText(registers.getMAR());
             MFR_Field.setText(registers.getMFR());
-                     
+
             int memoryAddress = instructions.binary_to_int(Address_Field.getText());
             Value_Field.setText(memory.getMemory(memoryAddress));
- 
+
         }
-        else if(inputType == InputType.DECIMAL)
+        else if (inputType == InputType.DECIMAL)
         {
             R0_Field.setText(binaryToIntString(registers.getR0()));
             R1_Field.setText(binaryToIntString(registers.getR1()));
             R2_Field.setText(binaryToIntString(registers.getR2()));
             R3_Field.setText(binaryToIntString(registers.getR3()));
-            
+
             X1_Field.setText(binaryToIntString(registers.getX1()));
             X2_Field.setText(binaryToIntString(registers.getX2()));
             X3_Field.setText(binaryToIntString(registers.getX3()));
-            
+
             PC_Field.setText(binaryToIntString(registers.getPC()));
             //CC_Field.setText(binaryToIntString(registers.getCC());
             IR_Field.setText(binaryToIntString(registers.getIR()));
             MBR_Field.setText(binaryToIntString(registers.getMBR()));
             MAR_Field.setText(binaryToIntString(registers.getMAR()));
             MFR_Field.setText(binaryToIntString(registers.getMFR()));
-            
+
             int memoryAddress = Integer.decode(Address_Field.getText());
             Value_Field.setText(binaryToIntString(memory.getMemory(memoryAddress)));
         }
     }
-    
+
     public void cycle()
     {
 
         //System.out.print(memory.printCache());
-        
-
         //a variable keep the trace whether PC has been changed inside of instructions
-    	boolean PC_changed = false;
+        boolean PC_changed = false;
         //implement the instruction for this step
-        if(!this.memory.getMemory(this.instructions.binary_to_int(registers.getPC())).equals("0000000000000000"))
+        if (!this.memory.getMemory(this.instructions.binary_to_int(registers.getPC())).equals("0000000000000000"))
         {
             //execute the instruction,but first use the translator function to get the operation code
             int op_code = op_translator(memory.getMemory(instructions.binary_to_int(registers.getPC())), instructions);
-            switch (op_code) 
+            switch (op_code)
             {
-            //load register from the memory, LDR
-            case 1:
+                //load register from the memory, LDR
+                case 1:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     this.instructions.LDR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
                     break;
-            //store register from memory, STR
-            case 2:
+                //store register from memory, STR
+                case 2:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     this.instructions.STR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
                     break;
-            //load register with address, LDA
-            case 3:
+                //load register with address, LDA
+                case 3:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     this.instructions.LDA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
                     break;
-            //load index register from the memory, LDX
-            case 41:
+                //load index register from the memory, LDX
+                case 41:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     this.instructions.LDX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
                     break;
-            //store index register to memory, STX
-            case 42:
+                //store index register to memory, STX
+                case 42:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     this.instructions.STX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
                     break;
-//            //jump if zero
-//            case 10:
-//            		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-//            		this.instructions.JZ(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-//            		//the pc has changed inside, so we set PC_changed  = true
-//            		PC_changed = true;
-//            		break;
-//            //jump if not equal
-//            case 11:
-//            		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-//            		this.instructions.JNE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-//            		//the pc has changed inside, so we set PC_changed  = true
-//            		PC_changed = true;
-//            		break;
-//            //jump if condition code
-//            case 12:
-//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-//        		this.instructions.JCC(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-//        		//the pc has changed inside, so we set PC_changed  = true
-//        		PC_changed = true;
-//        		break;
-//        	//unconditional jump to address
-//            case 13:
-//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-//        		this.instructions.JMA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-//        		//the pc has changed inside, so we set PC_changed  = true
-//        		PC_changed = true;
-//        		break;
-//        	//jump and save return address
-//            case 14:
-//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-//        		this.instructions.JSR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-//        		//the pc has changed inside, so we set PC_changed  = true
-//        		PC_changed = true;
-//        		break;
-//        	//return from subroutine with return code as immediate portion stored in the instructions' address field
-//            case 15:
-//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-//        		this.instructions.RFS(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-//        		//the pc has changed inside, so we set PC_changed  = true
-//        		PC_changed = true;
-//        		break;
-//        	//subtract one and branch
-//            case 16:
-//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-//        		this.instructions.SOB(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-//        		//the pc has changed inside, so we set PC_changed  = true
-//        		PC_changed = true;
-//        		break;
-//        	//jump greater than or equal to
-//            case 17:
-//        		registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-//        		this.instructions.JGE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
-//        		//the pc has changed inside, so we set PC_changed  = true
-//        		PC_changed = true;
-//        		break;
-            default:
+                //jump if zero
+                case 10:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.JZ(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    //the pc has changed inside, so we set PC_changed  = true
+                    PC_changed = true;
+                    break;
+                //jump if not equal
+                case 11:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.JNE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    //the pc has changed inside, so we set PC_changed  = true
+                    PC_changed = true;
+                    break;
+                //jump if condition code
+                case 12:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.JCC(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    //the pc has changed inside, so we set PC_changed  = true
+                    PC_changed = true;
+                    break;
+                //unconditional jump to address
+                case 13:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.JMA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    //the pc has changed inside, so we set PC_changed  = true
+                    PC_changed = true;
+                    break;
+                //jump and save return address
+                case 14:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.JSR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    //the pc has changed inside, so we set PC_changed  = true
+                    PC_changed = true;
+                    break;
+                //return from subroutine with return code as immediate portion stored in the instructions' address field
+                case 15:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.RFS(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    //the pc has changed inside, so we set PC_changed  = true
+                    PC_changed = true;
+                    break;
+                //subtract one and branch
+                case 16:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.SOB(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    //the pc has changed inside, so we set PC_changed  = true
+                    PC_changed = true;
+                    break;
+                //jump greater than or equal to
+                case 17:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.JGE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    //the pc has changed inside, so we set PC_changed  = true
+                    PC_changed = true;
+                    break;
+                //Add Memory To Register
+                case 04:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.AMR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    break;
+                //Subtract Memory From Register
+                case 05:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.SMR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    break;
+                //Add  Immediate to Register
+                case 06:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.AIR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Subtract  Immediate  from Register
+                case 07:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.SIR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Multiply Register by Register
+                case 20:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.MLT(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Divide Register by Register
+                case 21:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.DVD(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Test the Equality of Register and Register
+                case 22:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.TRR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Logical And of Register and Register
+                case 23:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.AND(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Logical Or of Register and Register
+                case 24:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.ORR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Logical Not of Register and Register
+                case 25:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.NOT(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Shift Register by Count
+                case 31:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.SRC(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Rotate Register by Count
+                case 32:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.RRC(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Input Character To Register from Device
+                case 61:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.IN(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                //Output Character To Register from Device
+                case 62:
+                    io_area.append("Nearest number is: ");
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.OUT(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    break;
+                default:
                     break;
             }
         }
-        
+
         //go to the next instruction
-        if(!PC_changed){
-        	int next_address = this.instructions.binary_to_int(registers.getPC()) + 1;
-            registers.setPC(this.instructions.int_to_binary(next_address));
+        if (!PC_changed)
+        {
+            int next_address = this.instructions.binary_to_int(registers.getPC()) + 1;
+            registers.setPC(this.instructions.int_to_binary_16bits(next_address));
         }
         //print for test
         System.out.println(registers.getPC());
         System.out.println(registers.getMAR());
-        
+
         String output = "";
-        while(io.hasOutput())
+        while (io.hasOutput())
         {
             output += io.getNextOutput();
         }
         io_area.append(output);
         updateDisplay();
-        
-        
-        
-        
-        if(RunCheckBox.isSelected())
+
+        if (RunCheckBox.isSelected())
         {
             Timer timer = new Timer();
             ClockCycler cycler = new ClockCycler(this);
             timer.schedule(cycler, CYCLE_TIME);
         }
-           
+
     }
-    
-    
+
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -1162,6 +1290,16 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void io_areaKeyTyped(java.awt.event.KeyEvent evt)//GEN-FIRST:event_io_areaKeyTyped
     {//GEN-HEADEREND:event_io_areaKeyTyped
         // TODO add your handling code here:
+ 
+        if(p1_active)
+        {           
+            p1_active = false;
+        }
+        if(evt.getKeyChar() == '\n')
+        {
+            p1_active = true;
+            io_area.append("\nType a number press enter: ");
+        }
         System.out.print(evt.getKeyChar());
         io.pushInput(Character.toString(evt.getKeyChar()));
         
@@ -1175,6 +1313,90 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void load_program1_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_program1_buttonActionPerformed
     {//GEN-HEADEREND:event_load_program1_buttonActionPerformed
         // TODO add your handling code here:
+        
+
+        io_area.append("Type a number press enter: ");
+        p1_active = true;
+        p1_firstTime = true;
+        
+    	registers.setPC("0000010000011010");
+    	registers.setX1("0000001111110110");//X1=1014
+    	registers.setX2("0000000000011111");//X2=32
+    	memory.setMemory(1021, "0000001111101101");
+    	memory.setMemory(1023, "0111111111111111");
+        memory.setMemory(1050, "1111010000000000");
+        memory.setMemory(1051, "0000100001001010");
+        memory.setMemory(1052, "1111010000000000");
+        memory.setMemory(1053, "0000100001001011");
+        memory.setMemory(1054, "1111010000000000");
+        memory.setMemory(1055, "0000100001001100");
+        memory.setMemory(1056, "1111010000000000");
+        memory.setMemory(1057, "0000100001001101");
+        memory.setMemory(1058, "1111010000000000");
+        memory.setMemory(1059, "0000100001001110");
+        memory.setMemory(1060, "1111010000000000");
+        memory.setMemory(1061, "0000100001001111");
+        memory.setMemory(1062, "1111010000000000");
+        memory.setMemory(1063, "0000100001010000");
+        memory.setMemory(1064, "1111010000000000");
+        memory.setMemory(1065, "0000100001010001");
+        memory.setMemory(1066, "1111010000000000");
+        memory.setMemory(1067, "0000100001010010");
+        memory.setMemory(1068, "1111010000000000");
+        memory.setMemory(1069, "0000100001010011");
+        memory.setMemory(1070, "1111010000000000");
+        memory.setMemory(1071, "0000100001010100");
+        memory.setMemory(1072, "1111010000000000");
+        memory.setMemory(1073, "0000100001010101");
+        memory.setMemory(1074, "1111010000000000");
+        memory.setMemory(1075, "0000100001010110");
+        memory.setMemory(1076, "1111010000000000");
+        memory.setMemory(1077, "0000100001010111");
+        memory.setMemory(1078, "1111010000000000");
+        memory.setMemory(1079, "0000100001011000");
+        memory.setMemory(1080, "1111010000000000");
+        memory.setMemory(1081, "0000100001011001");
+        memory.setMemory(1082, "1111010000000000");
+        memory.setMemory(1083, "0000100001011010");
+        memory.setMemory(1084, "1111010000000000");
+        memory.setMemory(1085, "0000100001011011");
+        memory.setMemory(1086, "1111010000000000");
+        memory.setMemory(1087, "0000100001011100");
+        memory.setMemory(1088, "1111010000000000");
+        memory.setMemory(1089, "0000100001011101");
+        memory.setMemory(1090, "1111010000000000");
+        memory.setMemory(1091, "0000100001001000");//store the request from user to address 1022
+        memory.setMemory(1092, "0011010000001010");//jump back to address 10
+        memory.setMemory(10, "0001101100010100");//AIR R3 20
+        memory.setMemory(11, "0000101101000110");//STR R3 1020
+        memory.setMemory(12, "0000011101000110");//LDR R3 1020
+        memory.setMemory(13, "0100001100001110");//SOB R3 16
+        memory.setMemory(14, "0000010001000110");//LDR R0 1017(current closest number)
+        memory.setMemory(15, "1111100000000000");//output the closest number
+        memory.setMemory(16, "0000011001001000");//LDR R2 0 0 1022
+        memory.setMemory(17, "0001001101000111");//AMR R3 1021
+        memory.setMemory(18, "0000101101000100");//STR R3 1018
+        memory.setMemory(19, "0001011001100100");//SMR R2 0 1 1018
+        memory.setMemory(20, "0101001010000000");//MLT R2 R2
+        memory.setMemory(21, "0001011101001001");//SMR R3 0 0 1023
+        memory.setMemory(22, "0100011110000000");//JGE R3 0 0 33
+        memory.setMemory(23, "0000101101001001");//STR R3 0 0 1023
+        memory.setMemory(24, "0000010001100100");//LDR R0 0 1 1018
+        memory.setMemory(25, "0000100001000011");//STR R0 0 0 1017
+        memory.setMemory(26, "0000011101000111");//LDR R3 1021
+        memory.setMemory(27, "0001101100000010");//AIR R3 2
+        memory.setMemory(28, "0000101101000111");//STR R3 1021
+        memory.setMemory(29, "0000011101000110");//LDR R3 1020
+        memory.setMemory(30, "0001111100000001");//SIR R3 1
+        memory.setMemory(31, "0000101101000110");//STR R3 1020
+        memory.setMemory(32, "0011010000001100");//JMA 12
+        memory.setMemory(33, "0000011101000111");//LDR R3 1021
+        memory.setMemory(34, "0001101100000010");//AIR R3 2
+        memory.setMemory(35, "0000101101000111");//STR R3 1021
+        memory.setMemory(36, "0000011101000110");//LDR R3 1020
+        memory.setMemory(37, "0001111100000001");//SIR R3 1
+        memory.setMemory(38, "0000101101000110");//STR R3 1020
+        memory.setMemory(39, "0011010000001100");//JMA 12
     }//GEN-LAST:event_load_program1_buttonActionPerformed
     
     

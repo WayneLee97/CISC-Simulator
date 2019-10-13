@@ -82,11 +82,6 @@ public class Word
         return sub;
     }
     
-    public String toString()
-    {
-        return getData();
-    }
-    
     
     
 

@@ -1,7 +1,5 @@
-
-
 public class Instructions {
-    public static final int OVERFLOW_MAX = 32767;
+	public static final int OVERFLOW_MAX = 32767;
     public static final int UNDERFLOW_MIN = -32768;
     
     private static Instructions inst = null;
@@ -9,7 +7,7 @@ public class Instructions {
     private Memory mm;
     private IOHandler io;
     
-    //singleton constructor
+  //singleton constructor
     private Instructions()
     {
         registers = Registers.instance();
@@ -28,13 +26,13 @@ public class Instructions {
         return inst;
     }
     
-    //a useful function to convert binary string to integer
-    static public Integer binary_to_int(String binary_number)
-    {
-        return Integer.parseInt(binary_number, 2);
-
-    }
-    //convert binary string to 16 bits Integer number
+	//a useful function to convert binary string to integer
+	static public Integer binary_to_int(String binary_number)
+        {
+		return Integer.parseInt(binary_number, 2);
+	}
+	
+	 //convert binary string to 16 bits Integer number
     static public Integer binary_to_int_16bits(String binary_number)
     {
         if ((binary_number.charAt(0) - '0') == 1) {
@@ -50,7 +48,7 @@ public class Instructions {
         }
     }
     
-    //convert a char to a 16bit binary number
+  //convert a char to a 16bit binary number
     public String characterToBinary(String character)
     {
         int decimal = character.charAt(0);
@@ -75,15 +73,15 @@ public class Instructions {
         }
         return false;
     }
-
-    //another useful function to convert integer into binary string
-    static public String int_to_binary(Integer number)
-    {
-        String binary_number = Integer.toBinaryString(number);
-
-        return binary_number;
-    }
-    //get high order bits when overflow/underflow.
+	
+	//another useful function to convert integer into binary string
+	static public String int_to_binary(Integer number)
+        {
+		String binary_number = Integer.toBinaryString(number);
+		return binary_number;
+	}
+	
+	//get high order bits when overflow/underflow.
     private String getHighOrderBits(Integer number) {
         String binary_number = Integer.toBinaryString(number);
         return binary_number.substring(0, 16);
@@ -92,12 +90,16 @@ public class Instructions {
     //convert integer to 16 bits binary string
     static public String int_to_binary_16bits(Integer number)
     {
+        return int_to_binary_xbits(number,16);
+    }
+    static public String int_to_binary_xbits(Integer number, int numBits)
+    {
         String binary_number = Integer.toBinaryString(number);
-        if (binary_number.length() > 16) {
+        if (binary_number.length() > numBits) {
 
-            return binary_number.substring(16, 32);
-        } else if (binary_number.length() < 16) {
-            int numberOfZero = 16 - binary_number.length();
+            return binary_number.substring(numBits, 32);
+        } else if (binary_number.length() < numBits) {
+            int numberOfZero = numBits - binary_number.length();
             StringBuilder sb = new StringBuilder();
             for (int i = 0; i < numberOfZero; i++) {
                 sb.append("0");
@@ -141,191 +143,419 @@ public class Instructions {
         }
         return sb.toString();
     }
-
-    //function to calculate the effective address
-    public int EA_calculator(String instruction, Registers registers, Memory mm){
-        //initialize the return number
-        int EA = 0;
-        /*
-         * there will be 4 branches, which depends on the values of I and IX. Just a reminder here:
-         * The index range of IX is(8, 10). The index range of R is(6, 8). The index of I is(10). The
-         * index range of address is (11,16).
-         * */
-        //no indirect addressing
-        if(instruction.charAt(10) == '0'){
-            //and no indexing. Then the EA is exactly the address in the instruction
-            if(instruction.substring(8, 10).equals("00")){
-                EA = binary_to_int(instruction.substring(11, 16));
-            }else{//no indirect addressing but indexing, EA = address + c(IX)
-                //3 branches to get the value of IX
-                if(instruction.substring(8, 10).equals("01")){//X1
-                    EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX1());
-                }else if(instruction.substring(8, 10).equals("10")){//X2
-                    EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX2());
-                }else if(instruction.substring(8, 10).equals("11")){//X3
-                    EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX3());
-                }
-            }
-        }else if(instruction.charAt(10) == '1'){//indirect addressing
-            if(instruction.substring(8, 10).equals("00")){//but no indexing. EA = c(address)
-                EA = binary_to_int(instruction.substring(11, 16));
-                EA = binary_to_int(mm.getMemory(EA));
-            }else{//indirect addressing and indexing. EA = c(address + c(IX))
-                //still, 3 branches to get value of IX and add it to address
-                if(instruction.substring(8, 10).equals("01")){//X1
-                    EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX1());
-                    EA = binary_to_int(mm.getMemory(EA));
-                }else if(instruction.substring(8, 10).equals("10")){//X2
-                    EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX2());
-                    EA = binary_to_int(mm.getMemory(EA));
-                }else if(instruction.substring(8, 10).equals("11")){//X3
-                    EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX3());
-                    EA = binary_to_int(mm.getMemory(EA));
-                }
-            }
-        }
-        return EA;
-    }
-
-    //load register from memory
-    public void LDR(String instruction, Registers registers, Memory mm){
-        //first of all, get the EA
-        int EA = EA_calculator(instruction, registers, mm);
-        //set the MAR
-        registers.setMAR(int_to_binary(EA));
-        //find out which register to be loaded from the memory
-        if(instruction.substring(6, 8).equals("00")){//R0
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            registers.setR0(mm.getMemory(EA));
-        }else if(instruction.substring(6, 8).equals("01")){//R1
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            registers.setR1(mm.getMemory(EA));
-        }else if(instruction.substring(6, 8).equals("10")){//R2
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            registers.setR2(mm.getMemory(EA));
-        }else if(instruction.substring(6, 8).equals("11")){//R3
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            registers.setR3(mm.getMemory(EA));
-        }
-    }
-
-    //store register to memory
-    public void STR(String instruction, Registers registers, Memory mm){
-        //first of all, get the EA
+	
+	//function to calculate the effective address
+	public int EA_calculator(String instruction, Registers registers, Memory mm){
+		//initialize the return number
+		int EA = 0;
+		/*
+		 * there will be 4 branches, which depends on the values of I and IX. Just a reminder here:
+		 * The index range of IX is(8, 10). The index range of R is(6, 8). The index of I is(10). The
+		 * index range of address is (11,16).
+		 * */
+		//no indirect addressing
+		if(instruction.charAt(10) == '0'){
+			//and no indexing. Then the EA is exactly the address in the instruction
+			if(instruction.substring(8, 10).equals("00")){
+				EA = binary_to_int(instruction.substring(11, 16));
+			}else{//no indirect addressing but indexing, EA = address + c(IX)
+				//3 branches to get the value of IX
+				if(instruction.substring(8, 10).equals("01")){//X1
+					EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX1());
+				}else if(instruction.substring(8, 10).equals("10")){//X2
+					EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX2());
+				}else if(instruction.substring(8, 10).equals("11")){//X3
+					EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX3());
+				}
+			}
+		}else if(instruction.charAt(10) == '1'){//indirect addressing
+			if(instruction.substring(8, 10).equals("00")){//but no indexing. EA = c(address)
+				EA = binary_to_int(instruction.substring(11, 16));
+				EA = binary_to_int(mm.getMemory(EA));
+			}else{//indirect addressing and indexing. EA = c(address + c(IX))
+				//still, 3 branches to get value of IX and add it to address
+				if(instruction.substring(8, 10).equals("01")){//X1
+					EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX1());
+					EA = binary_to_int(mm.getMemory(EA));
+				}else if(instruction.substring(8, 10).equals("10")){//X2
+					EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX2());
+					EA = binary_to_int(mm.getMemory(EA));
+				}else if(instruction.substring(8, 10).equals("11")){//X3
+					EA = binary_to_int(instruction.substring(11, 16)) + binary_to_int(registers.getX3());
+					EA = binary_to_int(mm.getMemory(EA));
+				}
+			}
+		}
+		return EA;
+	}
+	
+	//load register from memory
+	public void LDR(String instruction, Registers registers, Memory mm){
+		//first of all, get the EA
+		int EA = EA_calculator(instruction, registers, mm);
+		//set the MAR
+		registers.setMAR(int_to_binary_16bits(EA));
+		//find out which register to be loaded from the memory
+		if(instruction.substring(6, 8).equals("00")){//R0
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			registers.setR0(mm.getMemory(EA));
+		}else if(instruction.substring(6, 8).equals("01")){//R1
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			registers.setR1(mm.getMemory(EA));
+		}else if(instruction.substring(6, 8).equals("10")){//R2
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			registers.setR2(mm.getMemory(EA));
+		}else if(instruction.substring(6, 8).equals("11")){//R3
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			registers.setR3(mm.getMemory(EA));
+		}
+	}
+	
+	//store register to memory
+	public void STR(String instruction, Registers registers, Memory mm){
+		//first of all, get the EA
+		int EA = EA_calculator(instruction, registers, mm);
+		//set MAR
+		registers.setMAR(int_to_binary_16bits(EA));
+		//find out which register to be stored into the memory
+		if(instruction.substring(6, 8).equals("00")){//R0
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, registers.getR0());
+		}else if(instruction.substring(6, 8).equals("01")){//R1
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, registers.getR1());
+		}else if(instruction.substring(6, 8).equals("10")){//R2
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, registers.getR2());
+		}else if(instruction.substring(6, 8).equals("11")){//R3
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, registers.getR3());
+		}
+	}
+	
+	//load register with address
+	public void LDA(String instruction, Registers registers, Memory mm){
+		//still, get the EA
+		int EA = EA_calculator(instruction, registers, mm);
+		//find out which register to store the address, and format the address to make become a 16-bits string
+		if(instruction.substring(6, 8).equals("00")){//R0
+			registers.setR0(int_to_binary_16bits(EA));
+		}else if(instruction.substring(6, 8).equals("01")){//R1
+			registers.setR1(int_to_binary_16bits(EA));
+		}else if(instruction.substring(6, 8).equals("10")){//R2
+			registers.setR2(int_to_binary_16bits(EA));
+		}else if(instruction.substring(6, 8).equals("11")){//R3
+			registers.setR3(int_to_binary_16bits(EA));
+		}
+	}
+	
+	//load index register from the memory
+	public void LDX(String instruction, Registers registers, Memory mm){
+		//still, get the EA
+		int EA = EA_calculator(instruction, registers, mm);
+		//set MAR
+		registers.setMAR(int_to_binary_16bits(EA));
+		//find out which register to store the address
+		if(instruction.substring(6, 8).equals("01")){//X1
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			registers.setX1(mm.getMemory(EA));
+		}else if(instruction.substring(6, 8).equals("10")){//X2
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			registers.setX2(mm.getMemory(EA));
+		}else if(instruction.substring(6, 8).equals("11")){//X3
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			registers.setX3(mm.getMemory(EA));
+		}
+	}
+	
+	//store index register to memory
+	public void STX(String instruction, Registers registers, Memory mm){
+		//still, get the EA
+		int EA = EA_calculator(instruction, registers, mm);
+		//set MAR
+		registers.setMAR(int_to_binary(EA));
+		//find out which register to store the address
+		if(instruction.substring(6, 8).equals("01")){//X1
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, registers.getX1());
+		}else if(instruction.substring(6, 8).equals("10")){//X2
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, registers.getX2());
+		}else if(instruction.substring(6, 8).equals("11")){//X3
+			//set MBR
+			registers.setMBR(mm.getMemory(EA));
+			mm.setMemory(EA, registers.getX3());
+		}
+	}
+	
+	//jump if zero
+	public void JZ(String instruction, Registers registers, Memory mm){
+		int EA = EA_calculator(instruction, registers, mm);
+		if(instruction.substring(6, 8).equals("00")){//R0
+			if(binary_to_int(registers.getR0()) == 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("01")){//R1
+			if(binary_to_int(registers.getR1()) == 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("10")){//R2
+			if(binary_to_int(registers.getR2()) == 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("11")){//R3
+			if(binary_to_int(registers.getR3()) == 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}
+	}
+	
+	//jump if not equal
+	public void JNE(String instruction, Registers registers, Memory mm){
+		int EA = EA_calculator(instruction, registers, mm);
+		if(instruction.substring(6, 8).equals("00")){
+			if(binary_to_int(registers.getR0()) != 0){//R0
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("01")){//R1
+			if(binary_to_int(registers.getR1()) != 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("10")){//R2
+			if(binary_to_int(registers.getR2()) != 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("11")){//R3
+			if(binary_to_int(registers.getR3()) != 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}
+	}
+	
+	//jump if condition code
+	public void JCC(String instruction, Registers registers, Memory mm){
+		int EA = EA_calculator(instruction, registers, mm);
+		if(instruction.substring(6, 8).equals("00")){
+			if(registers.getCC0() == 1){//CC0
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("01")){//CC1
+			if(registers.getCC1() == 1){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("10")){//CC2
+			if(registers.getCC2() == 1){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("11")){//CC3
+			if(registers.getCC3() == 1){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}
+	}
+	
+	//unconditional jump to address
+	public void JMA(String instruction, Registers registers, Memory mm){
+		int EA = EA_calculator(instruction, registers, mm);
+		registers.setPC(int_to_binary_16bits(EA));
+	}
+	
+	//jump and save return address
+	public void JSR(String instruction, Registers registers, Memory mm){
+		int EA = EA_calculator(instruction, registers, mm);
+		int next_address = binary_to_int(registers.getPC()) + 1;
+		//R3 = PC + 1
+		registers.setR3(int_to_binary_16bits(next_address));
+		registers.setPC(int_to_binary_16bits(EA));
+		//R0 should contain pointer to arguments
+	}
+	
+	//return from subroutine with return code as immediate portion stored in the instructions' address field
+	public void RFS(String instruction, Registers registers, Memory mm){
+		//R0 = Immed
+		registers.setR0("00000000000" + instruction.substring(11, 16));
+		registers.setPC(registers.getR3());
+	}
+	
+	//subtract one and branch
+	public void SOB(String instruction, Registers registers, Memory mm){
+		int EA = EA_calculator(instruction, registers, mm);
+		if(instruction.substring(6, 8).equals("00")){//R0
+			registers.setR0(int_to_binary_16bits(EA - 1));
+			if(binary_to_int(registers.getR0()) > 0){
+				//PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("01")){//R1
+			registers.setR1(int_to_binary_16bits(EA - 1));
+			if(binary_to_int(registers.getR1()) > 0){
+				//PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("10")){//R2
+			registers.setR2(int_to_binary_16bits(EA - 1));
+			if(binary_to_int(registers.getR2()) > 0){
+				//PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("11")){//R3
+			registers.setR3(int_to_binary_16bits(EA - 1));
+			if(binary_to_int(registers.getR3()) > 0){
+				//PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}
+	}
+	
+	//jump greater than or equal
+	public void JGE(String instruction, Registers registers, Memory mm){
+		int EA = EA_calculator(instruction, registers, mm);
+		if(instruction.substring(6, 8).equals("00")){
+			if(binary_to_int(registers.getR0()) >= 0){//R0
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("01")){//R1
+			if(binary_to_int(registers.getR1()) >= 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("10")){//R2
+			if(binary_to_int(registers.getR2()) >= 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}else if(instruction.substring(6, 8).equals("11")){//R3
+			if(binary_to_int(registers.getR3()) >= 0){
+				//R0 = 0, PC = EA
+				registers.setPC(int_to_binary_16bits(EA));
+			}else{
+				//PC++ inside of this instruction
+				int next_address = binary_to_int(registers.getPC()) + 1;
+	            registers.setPC(int_to_binary_16bits(next_address));
+			}
+		}
+	}
+	
+	public void AMR(String instruction, Registers registers, Memory mm) {
+        //still, get the EA
         int EA = EA_calculator(instruction, registers, mm);
         //set MAR
         registers.setMAR(int_to_binary_16bits(EA));
-        //find out which register to be stored into the memory
-        if(instruction.substring(6, 8).equals("00")){//R0
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            mm.setMemory(EA, registers.getR0());
-        }else if(instruction.substring(6, 8).equals("01")){//R1
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            mm.setMemory(EA, registers.getR1());
-        }else if(instruction.substring(6, 8).equals("10")){//R2
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            mm.setMemory(EA, registers.getR2());
-        }else if(instruction.substring(6, 8).equals("11")){//R3
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            mm.setMemory(EA, registers.getR3());
-        }
-    }
-
-    //load register with address
-    public void LDA(String instruction, Registers registers, Memory mm){
-        //still, get the EA
-        int EA = EA_calculator(instruction, registers, mm);
-        //find out which register to store the address, and format the address to make become a 16-bits string
-        if(instruction.substring(6, 8).equals("00")){//R0
-            registers.setR0(int_to_binary(EA));
-        }else if(instruction.substring(6, 8).equals("01")){//R1
-            registers.setR1(int_to_binary(EA));
-        }else if(instruction.substring(6, 8).equals("10")){//R2
-            registers.setR2(int_to_binary(EA));
-        }else if(instruction.substring(6, 8).equals("11")){//R3
-            registers.setR3(int_to_binary(EA));
-        }
-    }
-
-    //load index register from the memory
-    public void LDX(String instruction, Registers registers, Memory mm){
-        //still, get the EA
-        int EA = EA_calculator(instruction, registers, mm);
-        //set MAR
-        registers.setMAR(int_to_binary(EA));
-        //find out which register to store the address
-        if(instruction.substring(8, 10).equals("01")){//X1
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            registers.setX1(mm.getMemory(EA));
-        }else if(instruction.substring(8, 10).equals("10")){//X2
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            registers.setX2(mm.getMemory(EA));
-        }else if(instruction.substring(8, 10).equals("11")){//X3
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            registers.setX3(mm.getMemory(EA));
-        }
-    }
-
-    //store index register to memory
-    public void STX(String instruction, Registers registers, Memory mm){
-        //still, get the EA
-        int EA = EA_calculator(instruction, registers, mm);
-        //set MAR
-        registers.setMAR(int_to_binary(EA));
-        //find out which register to store the address
-        if(instruction.substring(8, 10).equals("01")){//X1
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            mm.setMemory(EA, registers.getX1());
-        }else if(instruction.substring(8, 10).equals("10")){//X2
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            mm.setMemory(EA, registers.getX2());
-        }else if(instruction.substring(8, 10).equals("11")){//X3
-            //set MBR
-            registers.setMBR(mm.getMemory(EA));
-            mm.setMemory(EA, registers.getX3());
-        }
-    }
-
-    //Add momory to register (r <- c(r) + c(EA))
-
-    /**
-     *
-     * @param instruction
-     * @param registers
-     * @param mm
-     *        todo: handle overflow.
-     */
-    public void AMR(String instruction, Registers registers, Memory mm) {
-        //still, get the EA
-        int EA = EA_calculator(instruction, registers, mm);
-        //set MAR
-        registers.setMAR(int_to_binary(EA));
         registers.setMBR(mm.getMemory(EA));
         //find out which register to store the address
         if(instruction.substring(6, 8).equals("00")){//R0
-            String address = int_to_binary(binary_to_int(registers.getR0()) + binary_to_int(mm.getMemory(EA)));
+            String address = int_to_binary_16bits(binary_to_int(registers.getR0()) + binary_to_int(mm.getMemory(EA)));
             registers.setR0(address);
         }else if(instruction.substring(6, 8).equals("01")){//R1
-            String address = int_to_binary(binary_to_int(registers.getR1()) + binary_to_int(mm.getMemory(EA)));
+            String address = int_to_binary_16bits(binary_to_int(registers.getR1()) + binary_to_int(mm.getMemory(EA)));
             registers.setR1(address);
         }else if(instruction.substring(6, 8).equals("10")){//R2
-            String address = int_to_binary(binary_to_int(registers.getR2()) + binary_to_int(mm.getMemory(EA)));
+            String address = int_to_binary_16bits(binary_to_int(registers.getR2()) + binary_to_int(mm.getMemory(EA)));
             registers.setR2(address);
         }else if(instruction.substring(6, 8).equals("11")){//R3
-            String address = int_to_binary(binary_to_int(registers.getR3()) + binary_to_int(mm.getMemory(EA)));
+            String address = int_to_binary_16bits(binary_to_int(registers.getR3()) + binary_to_int(mm.getMemory(EA)));
             registers.setR3(address);
         }
     }
@@ -358,10 +588,11 @@ public class Instructions {
      *
      * @param instruction
      * @param registers
-     * @param immed 5 bits String
+     * @param  5 bits String
      */
-    public void AIR(String instruction, Registers registers, String immed) {
-        int immedValue = binary_to_int(immed);
+    public void AIR(String instruction, Registers registers) {
+    	String immed = instruction.substring(11, 16);
+    	int immedValue = binary_to_int(immed);
         if (immedValue != 0) {
             //find out which register to store the address
             if (instruction.substring(6, 8).equals("00")) {//R0
@@ -385,10 +616,11 @@ public class Instructions {
      *
      * @param instruction
      * @param registers
-     * @param immed 5 bits String
+     * @param  5 bits String
      */
-    public void SIR(String instruction, Registers registers, String immed) {
-        int immedValue = binary_to_int(immed);
+    public void SIR(String instruction, Registers registers) {
+    	String immed = instruction.substring(11, 16);
+    	int immedValue = binary_to_int(immed);
         if (immedValue != 0) {
             //find out which register to store the address
             if (instruction.substring(6, 8).equals("00")) {//R0
@@ -500,6 +732,94 @@ public class Instructions {
             }
         }
     }
+    
+    //Test the Equality of Register and Register
+    public void TRR(String instruction, Registers registers){
+    	int rx = binary_to_int(instruction.substring(6, 8));
+        int ry = binary_to_int(instruction.substring(8, 10));
+        if (rx == 0) {
+            if (ry == 1) {
+                if(registers.getR0().equals(registers.getR1())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            } else if (ry == 2) {
+            	if(registers.getR0().equals(registers.getR2())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            } else if (ry == 3) {
+            	if(registers.getR0().equals(registers.getR3())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            }
+        } else if (rx == 1) {
+        	if (ry == 1) {
+                if(registers.getR1().equals(registers.getR1())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            } else if (ry == 2) {
+            	if(registers.getR1().equals(registers.getR2())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            } else if (ry == 3) {
+            	if(registers.getR1().equals(registers.getR3())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            }
+        } else if (rx == 2) {
+        	if (ry == 1) {
+                if(registers.getR2().equals(registers.getR1())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            } else if (ry == 2) {
+            	if(registers.getR2().equals(registers.getR2())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            } else if (ry == 3) {
+            	if(registers.getR2().equals(registers.getR3())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            }
+        } else if (rx == 3) {
+        	if (ry == 1) {
+                if(registers.getR3().equals(registers.getR1())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            } else if (ry == 2) {
+            	if(registers.getR3().equals(registers.getR2())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            } else if (ry == 3) {
+            	if(registers.getR3().equals(registers.getR3())){
+                	registers.setCC3(1);
+                }else{
+                	registers.setCC3(0);
+                }
+            }
+        }
+    }
+    
     //Logical And of register and register c(rx) <- c(rx) AND c(ry)
     /**
      *
@@ -596,77 +916,187 @@ public class Instructions {
         }
     }
     
+    //shift register by count, A/L = 8, L/R = 9, count = 12-15
+    public void SRC(String instruction, Registers registers){
+    	String result_string;
+    	String temp_string;
+    	StringBuilder shift_string = new StringBuilder();
+    	int temp_number;
+    	if(instruction.substring(6,8).equals("00")){
+    		temp_string = registers.getR0();
+    	}else if(instruction.substring(6,8).equals("01")){
+    		temp_string = registers.getR1();
+    	}else if(instruction.substring(6,8).equals("10")){
+    		temp_string = registers.getR2();
+    	}else{
+    		temp_string = registers.getR3();
+    	}
+    	//left or right
+    	if(instruction.charAt(9) == '0'){//right
+    		//A or L
+    		if(instruction.charAt(8) == '0'){//arithmetically
+    			temp_number = binary_to_int_16bits(temp_string);
+    			temp_number = (int)(temp_number/(int)(Math.pow(2, binary_to_int(instruction.substring(12, 16)))));
+    			result_string = int_to_binary_16bits(temp_number);
+    		}else{//logically
+    			for(int i = 0; i < binary_to_int(instruction.substring(12, 16)); i++){
+    				shift_string.append('0');
+    			}
+    			result_string = shift_string.toString();
+    			result_string = result_string + temp_string.substring(binary_to_int(instruction.substring(12, 16)), 16);
+    		}
+    	}else{//left
+    		if(instruction.charAt(8) == '0'){//arithmetically
+    			temp_number = binary_to_int_16bits(temp_string);
+    			temp_number = (int)(temp_number * (int)(Math.pow(2, binary_to_int(instruction.substring(12, 16)))));
+    			//check overflow or underflow
+    			if (temp_number > OVERFLOW_MAX) {
+    	            registers.setCC0(1);
+    	        } else if (temp_number < UNDERFLOW_MIN) {
+    	            registers.setCC1(1);
+    	        }
+    			result_string = int_to_binary_16bits(temp_number);
+    		}else{//logically
+    			for(int i = 0; i < binary_to_int(instruction.substring(12, 16)); i++){
+    				shift_string.append('0');
+    			}
+    			result_string = shift_string.toString();
+    			result_string = temp_string.substring(0, 16 - binary_to_int(instruction.substring(12, 16))) + result_string;
+    		}
+    	}
+    	if(instruction.substring(6,8).equals("00")){
+    		registers.setR0(result_string);
+    	}else if(instruction.substring(6,8).equals("01")){
+    		registers.setR1(result_string);
+    	}else if(instruction.substring(6,8).equals("10")){
+    		registers.setR2(result_string);
+    	}else{
+    		registers.setR3(result_string);
+    	}
+    }
     
-
-        //loads a single character from the input buffer into the indicated
-        //register
-        public void IN(String instruction)
-        {
-            
-            int devID = binary_to_int(instruction.substring(11,16));
-            if(devID == 0 && io.hasInput())
-            {
-                String input = characterToBinary(io.getNextInput());
-                
-                
-                if(instruction.substring(6, 8).equals("00"))
-                {//R0
-                    registers.setR0(input);
-		}
-                else if(instruction.substring(6, 8).equals("01"))
-                {//R1
-                    registers.setR1(input);
-		}
-                else if(instruction.substring(6, 8).equals("10"))
-                {//R2
-                    registers.setR2(input);
-		}
-                else if(instruction.substring(6, 8).equals("11"))
-                {//R3
-                    registers.setR3(input);
-		}
-            }
-            else
-            {
-                //@TODO: Error?
-            }
-        }
+    //Rotate register by count
+    public void RRC(String instruction, Registers registers){
+    	String result_string;
+    	String temp_string;
+    	StringBuilder shift_string = new StringBuilder();
+    	if(instruction.substring(6,8).equals("00")){
+    		temp_string = registers.getR0();
+    	}else if(instruction.substring(6,8).equals("01")){
+    		temp_string = registers.getR1();
+    	}else if(instruction.substring(6,8).equals("10")){
+    		temp_string = registers.getR2();
+    	}else{
+    		temp_string = registers.getR3();
+    	}
+    	if(instruction.charAt(9) == '0'){//right
+    		if(instruction.charAt(8) == '0'){//arithmetically
+    			result_string = temp_string.substring(0, 1) + temp_string.substring(16 - binary_to_int(instruction.substring(12, 16)), 16) + temp_string.substring(1, 16 - binary_to_int(instruction.substring(12, 16)));
+    		}else{//logically
+    			result_string = temp_string.substring(16 - binary_to_int(instruction.substring(12, 16)), 16) + temp_string.substring(0, 16 - binary_to_int(instruction.substring(12, 16)));
+    		}
+    	}else{//left
+    		if(instruction.charAt(8) == '0'){//arithmetically
+    			result_string = temp_string.substring(0, 1) + temp_string.substring(binary_to_int(instruction.substring(12, 16)), 16) + temp_string.substring(1, binary_to_int(instruction.substring(12, 16)));
+    		}else{//logically
+    			result_string = temp_string.substring(binary_to_int(instruction.substring(12, 16)), 16) + temp_string.substring(0, binary_to_int(instruction.substring(12, 16)));
+    		}
+    	}
+    	if(instruction.substring(6,8).equals("00")){
+    		registers.setR0(result_string);
+    	}else if(instruction.substring(6,8).equals("01")){
+    		registers.setR1(result_string);
+    	}else if(instruction.substring(6,8).equals("10")){
+    		registers.setR2(result_string);
+    	}else{
+    		registers.setR3(result_string);
+    	}
+    }
+    
+    public void IN(String instruction, Registers registers)
+    {
         
-        //loads a single character into the output buffer into the indicated
-        //register
-        public void OUT(String instruction)
+        int devID = binary_to_int(instruction.substring(11,16));
+        if(devID == 0 && io.hasInput())
         {
-                        
-            int devID = binary_to_int(instruction.substring(11,16));
-            if(devID == 1 && io.hasInput())
+            //String input = characterToBinary(io.getNextInput());
+
+            int intval = 0;
+            //while(io.hasInput())
+            while(true) // go until newline is recieved
             {
-                String output = "";
-                String binary = "";
-                
-                if(instruction.substring(6, 8).equals("00"))
-                {//R0
-                    binary = registers.getR0();
-		}
-                else if(instruction.substring(6, 8).equals("01"))
-                {//R1
-                    binary = registers.getR1();
-		}
-                else if(instruction.substring(6, 8).equals("10"))
-                {//R2
-                    binary = registers.getR2();
-		}
+                char input = io.getNextInput().charAt(0);
+                if(input == '\n')
+                {
+                    break;
+                }
+                else
+                {
+                    intval = intval * 10;
+                    intval += input;
+                }
+            }
+            String input = int_to_binary_16bits(intval);
+            
+            if(instruction.substring(6, 8).equals("00"))
+            {//R0
+                registers.setR0(input);
+	}
+            else if(instruction.substring(6, 8).equals("01"))
+            {//R1
+                registers.setR1(input);
+	}
+            else if(instruction.substring(6, 8).equals("10"))
+            {//R2
+                registers.setR2(input);
+	}
+            else if(instruction.substring(6, 8).equals("11"))
+            {//R3
+                registers.setR3(input);
+	}
+        }
+        else
+        {
+            //@TODO: Error?
+        }
+    }
+    
+    //loads a single character into the output buffer into the indicated
+    //register
+    public void OUT(String instruction, Registers registers)
+    {
+                    
+        int devID = binary_to_int(instruction.substring(11,16));
+        if(devID == 1)
+        {
+            String output = "";
+            String binary = "";
+
+            if(instruction.substring(6, 8).equals("00"))
+            {//R0
+                binary = registers.getR0();
+            }
+            else if(instruction.substring(6, 8).equals("01"))
+            {//R1
+                binary = registers.getR1();
+            }
+            else if(instruction.substring(6, 8).equals("10"))
+            {//R2
+                binary = registers.getR2();
+            }
                 else if(instruction.substring(6, 8).equals("11"))
                 {//R3
                     binary = registers.getR3();
-		}
-                
-                output = binaryToCharacter(binary);
-                io.pushOutput(output);
             }
-            else
-            {
-                //@TODO: Error?
-            }
+            
+            //output = binaryToCharacter(binary);
+            output = Integer.toString(binary_to_int_16bits(binary));
+            io.pushOutput(output);
+
         }
-    
+        else
+        {
+            //@TODO: Error?
+        }
+    }
 }
