@@ -3,6 +3,20 @@ import java.util.LinkedHashMap;
 import java.util.Set;
 //import static Utilities.*;
 
+
+/**
+ * memory reservations
+ * 0
+ * 1 
+ * 2 
+ * 3  
+ * 4 
+ * 5 
+ * 6  
+ * 7 Variable table base-address
+ * 8 jump table base-address
+ * 
+ */
 public class Memory
 {
 
@@ -10,6 +24,13 @@ public class Memory
     private LinkedHashMap<Integer, String> cache;
     public final int MAX_CACHE = 16;
     public final int MEMORY_SIZE = 2048;
+    public final int VARIABLE_TABLE_POINTER = 7;
+    public final int JUMP_TABLE_POINTER = 8;
+    public final int VARIABLE_TABLE_ADDRESS = 32;
+    public final int JUMP_TABLE_ADDRESS = 64;
+    
+    public final int PROGRAM_START_ADDRESS = 256;
+    public final int HEAP_START_ADDRESS = 1024;
 
     private static Memory inst = null;
 

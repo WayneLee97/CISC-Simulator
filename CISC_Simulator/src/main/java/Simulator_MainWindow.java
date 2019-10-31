@@ -1,10 +1,13 @@
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Scanner;
 import javax.swing.JFormattedTextField;
 
 import java.util.Timer;
 import java.util.TimerTask;
+import javafx.stage.FileChooser;
+import javax.swing.JFileChooser;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -91,7 +94,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 {
     
     static final String ZEROED_REGISTER = "0000000000000000";
-    static final int CYCLE_TIME = 1000;
+    static final int CYCLE_TIME = 10;//made change here to get faster clock cycle
 
     private InputType inputType = InputType.BINARY;
 
@@ -291,6 +294,8 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 
     public void cycle()
     {
+        
+
 
         //System.out.print(memory.printCache());
         //a variable keep the trace whether PC has been changed inside of instructions
@@ -305,154 +310,158 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                 //load register from the memory, LDR
                 case 1:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.LDR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.LDR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //store register from memory, STR
                 case 2:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.STR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.STR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //load register with address, LDA
                 case 3:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.LDA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.LDA(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //load index register from the memory, LDX
                 case 41:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.LDX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.LDX(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //store index register to memory, STX
                 case 42:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.STX(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.STX(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //jump if zero
                 case 10:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JZ(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.JZ(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     //the pc has changed inside, so we set PC_changed  = true
                     PC_changed = true;
                     break;
                 //jump if not equal
                 case 11:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JNE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.JNE(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     //the pc has changed inside, so we set PC_changed  = true
                     PC_changed = true;
                     break;
                 //jump if condition code
                 case 12:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JCC(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.JCC(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     //the pc has changed inside, so we set PC_changed  = true
                     PC_changed = true;
                     break;
                 //unconditional jump to address
                 case 13:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JMA(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.JMA(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     //the pc has changed inside, so we set PC_changed  = true
                     PC_changed = true;
                     break;
                 //jump and save return address
                 case 14:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JSR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.JSR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     //the pc has changed inside, so we set PC_changed  = true
                     PC_changed = true;
                     break;
                 //return from subroutine with return code as immediate portion stored in the instructions' address field
                 case 15:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.RFS(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.RFS(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     //the pc has changed inside, so we set PC_changed  = true
                     PC_changed = true;
                     break;
                 //subtract one and branch
                 case 16:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.SOB(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.SOB(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     //the pc has changed inside, so we set PC_changed  = true
                     PC_changed = true;
                     break;
                 //jump greater than or equal to
                 case 17:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JGE(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.JGE(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     //the pc has changed inside, so we set PC_changed  = true
                     PC_changed = true;
                     break;
                 //Add Memory To Register
-                case 04:
+                case 4:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.AMR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.AMR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Subtract Memory From Register
-                case 05:
+                case 5:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.SMR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers, this.memory);
+                    this.instructions.SMR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Add  Immediate to Register
-                case 06:
+                case 6:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.AIR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.AIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Subtract  Immediate  from Register
-                case 07:
+                case 7:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.SIR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.SIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Multiply Register by Register
                 case 20:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.MLT(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.MLT(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Divide Register by Register
                 case 21:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.DVD(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.DVD(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Test the Equality of Register and Register
                 case 22:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.TRR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.TRR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Logical And of Register and Register
                 case 23:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.AND(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.AND(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Logical Or of Register and Register
                 case 24:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.ORR(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.ORR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Logical Not of Register and Register
                 case 25:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.NOT(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.NOT(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Shift Register by Count
                 case 31:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.SRC(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.SRC(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Rotate Register by Count
                 case 32:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.RRC(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.RRC(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Input Character To Register from Device
                 case 61:
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.IN(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.IN(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 //Output Character To Register from Device
                 case 62:
                     io_area.append("Nearest number is: ");
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.OUT(memory.getMemory(instructions.binary_to_int(registers.getPC())), registers);
+                    this.instructions.OUT(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    break;
+                case 43:
+                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
+                    this.instructions.SET(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
                 default:
                     break;
@@ -465,9 +474,6 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             int next_address = this.instructions.binary_to_int(registers.getPC()) + 1;
             registers.setPC(this.instructions.int_to_binary_16bits(next_address));
         }
-        //print for test
-        System.out.println(registers.getPC());
-        System.out.println(registers.getMAR());
 
         String output = "";
         while (io.hasOutput())
@@ -479,11 +485,12 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 
         if (RunCheckBox.isSelected())
         {
-            Timer timer = new Timer();
-            ClockCycler cycler = new ClockCycler(this);
-            timer.schedule(cycler, CYCLE_TIME);
+        	if(!registers.getPC().equals("0000000000001110")){
+        		Timer timer = new Timer();
+        		ClockCycler cycler = new ClockCycler(this);
+        		timer.schedule(cycler, CYCLE_TIME);
+        	}
         }
-
     }
 
 
@@ -1313,90 +1320,105 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void load_program1_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_program1_buttonActionPerformed
     {//GEN-HEADEREND:event_load_program1_buttonActionPerformed
         // TODO add your handling code here:
-        
+                AssemblyTranslator translator = new AssemblyTranslator();
+        JFileChooser chooser = new JFileChooser();
+        int retVal = chooser.showOpenDialog(this);
+        String filepath = chooser.getSelectedFile().getPath();
+        translator.loadAssembly("Program1.txt");
+//        Scanner in = new Scanner(System.in);
+//        for(int i = 0; i < 10; i++)
+//        {
+//            System.out.println("Enter assembly:");
+//            String line = in.nextLine();
+//            System.out.println(translator.makeSimpleInstruction(line));
+//        }
 
-        io_area.append("Type a number press enter: ");
-        p1_active = true;
-        p1_firstTime = true;
-        
-    	registers.setPC("0000010000011010");
+//        io_area.append("Type a number press enter: ");
+//        p1_active = true;
+//        p1_firstTime = true;
+//        
+    	registers.setPC(Instructions.int_to_binary_16bits(255));
     	registers.setX1("0000001111110110");//X1=1014
     	registers.setX2("0000000000011111");//X2=32
-    	memory.setMemory(1021, "0000001111101101");
-    	memory.setMemory(1023, "0111111111111111");
-        memory.setMemory(1050, "1111010000000000");
-        memory.setMemory(1051, "0000100001001010");
-        memory.setMemory(1052, "1111010000000000");
-        memory.setMemory(1053, "0000100001001011");
-        memory.setMemory(1054, "1111010000000000");
-        memory.setMemory(1055, "0000100001001100");
-        memory.setMemory(1056, "1111010000000000");
-        memory.setMemory(1057, "0000100001001101");
-        memory.setMemory(1058, "1111010000000000");
-        memory.setMemory(1059, "0000100001001110");
-        memory.setMemory(1060, "1111010000000000");
-        memory.setMemory(1061, "0000100001001111");
-        memory.setMemory(1062, "1111010000000000");
-        memory.setMemory(1063, "0000100001010000");
-        memory.setMemory(1064, "1111010000000000");
-        memory.setMemory(1065, "0000100001010001");
-        memory.setMemory(1066, "1111010000000000");
-        memory.setMemory(1067, "0000100001010010");
-        memory.setMemory(1068, "1111010000000000");
-        memory.setMemory(1069, "0000100001010011");
-        memory.setMemory(1070, "1111010000000000");
-        memory.setMemory(1071, "0000100001010100");
-        memory.setMemory(1072, "1111010000000000");
-        memory.setMemory(1073, "0000100001010101");
-        memory.setMemory(1074, "1111010000000000");
-        memory.setMemory(1075, "0000100001010110");
-        memory.setMemory(1076, "1111010000000000");
-        memory.setMemory(1077, "0000100001010111");
-        memory.setMemory(1078, "1111010000000000");
-        memory.setMemory(1079, "0000100001011000");
-        memory.setMemory(1080, "1111010000000000");
-        memory.setMemory(1081, "0000100001011001");
-        memory.setMemory(1082, "1111010000000000");
-        memory.setMemory(1083, "0000100001011010");
-        memory.setMemory(1084, "1111010000000000");
-        memory.setMemory(1085, "0000100001011011");
-        memory.setMemory(1086, "1111010000000000");
-        memory.setMemory(1087, "0000100001011100");
-        memory.setMemory(1088, "1111010000000000");
-        memory.setMemory(1089, "0000100001011101");
-        memory.setMemory(1090, "1111010000000000");
-        memory.setMemory(1091, "0000100001001000");//store the request from user to address 1022
-        memory.setMemory(1092, "0011010000001010");//jump back to address 10
-        memory.setMemory(10, "0001101100010100");//AIR R3 20
-        memory.setMemory(11, "0000101101000110");//STR R3 1020
-        memory.setMemory(12, "0000011101000110");//LDR R3 1020
-        memory.setMemory(13, "0100001100001110");//SOB R3 16
-        memory.setMemory(14, "0000010001000110");//LDR R0 1017(current closest number)
-        memory.setMemory(15, "1111100000000000");//output the closest number
-        memory.setMemory(16, "0000011001001000");//LDR R2 0 0 1022
-        memory.setMemory(17, "0001001101000111");//AMR R3 1021
-        memory.setMemory(18, "0000101101000100");//STR R3 1018
-        memory.setMemory(19, "0001011001100100");//SMR R2 0 1 1018
-        memory.setMemory(20, "0101001010000000");//MLT R2 R2
-        memory.setMemory(21, "0001011101001001");//SMR R3 0 0 1023
-        memory.setMemory(22, "0100011110000000");//JGE R3 0 0 33
-        memory.setMemory(23, "0000101101001001");//STR R3 0 0 1023
-        memory.setMemory(24, "0000010001100100");//LDR R0 0 1 1018
-        memory.setMemory(25, "0000100001000011");//STR R0 0 0 1017
-        memory.setMemory(26, "0000011101000111");//LDR R3 1021
-        memory.setMemory(27, "0001101100000010");//AIR R3 2
-        memory.setMemory(28, "0000101101000111");//STR R3 1021
-        memory.setMemory(29, "0000011101000110");//LDR R3 1020
-        memory.setMemory(30, "0001111100000001");//SIR R3 1
-        memory.setMemory(31, "0000101101000110");//STR R3 1020
-        memory.setMemory(32, "0011010000001100");//JMA 12
-        memory.setMemory(33, "0000011101000111");//LDR R3 1021
-        memory.setMemory(34, "0001101100000010");//AIR R3 2
-        memory.setMemory(35, "0000101101000111");//STR R3 1021
-        memory.setMemory(36, "0000011101000110");//LDR R3 1020
-        memory.setMemory(37, "0001111100000001");//SIR R3 1
-        memory.setMemory(38, "0000101101000110");//STR R3 1020
-        memory.setMemory(39, "0011010000001100");//JMA 12
+        memory.setMemory(7,Instructions.int_to_binary_16bits(32));
+        memory.setMemory(8,Instructions.int_to_binary_16bits(64));
+//    	memory.setMemory(1021, "0000001111101100");//1004
+//    	memory.setMemory(1023, "0111111111111111");
+//        memory.setMemory(1050, "1111010000000000");
+//        memory.setMemory(1051, "0000100001001010");
+//        memory.setMemory(1052, "1111010000000000");
+//        memory.setMemory(1053, "0000100001001011");
+//        memory.setMemory(1054, "1111010000000000");
+//        memory.setMemory(1055, "0000100001001100");
+//        memory.setMemory(1056, "1111010000000000");
+//        memory.setMemory(1057, "0000100001001101");
+//        memory.setMemory(1058, "1111010000000000");
+//        memory.setMemory(1059, "0000100001001110");
+//        memory.setMemory(1060, "1111010000000000");
+//        memory.setMemory(1061, "0000100001001111");
+//        memory.setMemory(1062, "1111010000000000");
+//        memory.setMemory(1063, "0000100001010000");
+//        memory.setMemory(1064, "1111010000000000");
+//        memory.setMemory(1065, "0000100001010001");
+//        memory.setMemory(1066, "1111010000000000");
+//        memory.setMemory(1067, "0000100001010010");
+//        memory.setMemory(1068, "1111010000000000");
+//        memory.setMemory(1069, "0000100001010011");
+//        memory.setMemory(1070, "1111010000000000");
+//        memory.setMemory(1071, "0000100001010100");
+//        memory.setMemory(1072, "1111010000000000");
+//        memory.setMemory(1073, "0000100001010101");
+//        memory.setMemory(1074, "1111010000000000");
+//        memory.setMemory(1075, "0000100001010110");
+//        memory.setMemory(1076, "1111010000000000");
+//        memory.setMemory(1077, "0000100001010111");
+//        memory.setMemory(1078, "1111010000000000");
+//        memory.setMemory(1079, "0000100001011000");
+//        memory.setMemory(1080, "1111010000000000");
+//        memory.setMemory(1081, "0000100001011001");
+//        memory.setMemory(1082, "1111010000000000");
+//        memory.setMemory(1083, "0000100001011010");
+//        memory.setMemory(1084, "1111010000000000");
+//        memory.setMemory(1085, "0000100001011011");
+//        memory.setMemory(1086, "1111010000000000");
+//        memory.setMemory(1087, "0000100001011100");
+//        memory.setMemory(1088, "1111010000000000");
+//        memory.setMemory(1089, "0000100001011101");
+//        memory.setMemory(1090, "1111010000000000");
+//        memory.setMemory(1091, "0000100001001000");//store the request from user to address 1022
+//        memory.setMemory(1092, "0011010000001010");//jump back to address 10
+//        memory.setMemory(10, "0001101100010101");//AIR R3 21
+//        memory.setMemory(10, "0001101100010101");//AIR R3 21
+//        memory.setMemory(11, "0000101101000110");//STR R3 1020
+//        memory.setMemory(12, "0000011101000110");//LDR R3 1020
+//        memory.setMemory(13, "0100001100001111");//SOB R3 15
+//        memory.setMemory(14, "1111100000000001");//output the closest number
+//        memory.setMemory(15, "0000011001001000");//LDR R2 0 0 1022
+//        memory.setMemory(16, "0001001101000111");//AMR R3 1021
+//        memory.setMemory(17, "0000101101000100");//STR R3 1018
+//        memory.setMemory(18, "0001011001100100");//SMR R2 0 1 1018
+//        memory.setMemory(19, "0101001010000000");//MLT R2 R2
+//        memory.setMemory(20, "0000101101000010");//STR R3 1016
+//        memory.setMemory(21, "0000011001000010");//LDR R2 1016(R2 store the current calculation result)
+//        memory.setMemory(22, "0001011101001001");//SMR R3 0 0 1023
+//        memory.setMemory(23, "0100011110000010");//JGE R3 0 0 34
+//        memory.setMemory(24, "0000101001001001");//STR R2 0 0 1023
+//        memory.setMemory(25, "0000010001100100");//LDR R0 0 1 1018
+//        memory.setMemory(26, "0000100001000011");//STR R0 0 0 1017
+//        memory.setMemory(27, "0000011101000111");//LDR R3 1021
+//        memory.setMemory(28, "0001101100000010");//AIR R3 2
+//        memory.setMemory(29, "0000101101000111");//STR R3 1021
+//        memory.setMemory(30, "0000011101000110");//LDR R3 1020
+//        memory.setMemory(31, "0001111100000001");//SIR R3 1
+//        memory.setMemory(32, "0000101101000110");//STR R3 1020
+//        memory.setMemory(33, "0011010000001100");//JMA 12
+//        memory.setMemory(34, "0000011101000111");//LDR R3 1021
+//        memory.setMemory(35, "0001101100000010");//AIR R3 2
+//        memory.setMemory(36, "0000101101000111");//STR R3 1021
+//        memory.setMemory(37, "0000011101000110");//LDR R3 1020
+//        memory.setMemory(38, "0001111100000001");//SIR R3 1
+//        memory.setMemory(39, "0000101101000110");//STR R3 1020
+//        memory.setMemory(40, "0011010000001100");//JMA 12
     }//GEN-LAST:event_load_program1_buttonActionPerformed
     
     
@@ -1444,8 +1466,9 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         {
             public void run()
             {
- 
+
                 new Simulator_MainWindow().setVisible(true);
+               
             }
         });
     }

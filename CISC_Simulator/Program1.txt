@@ -1,0 +1,7 @@
+SET R0 31
+#begin loop
+LOOP1
+LDR R1 A
+AIR R1 2
+STR R1 A
+SOB R0 LOOP1
