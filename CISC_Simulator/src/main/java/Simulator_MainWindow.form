@@ -650,7 +650,6 @@
     <Component class="javax.swing.JButton" name="load_program2_button">
       <Properties>
         <Property name="text" type="java.lang.String" value="Load Program 2"/>
-        <Property name="enabled" type="boolean" value="false"/>
       </Properties>
       <Events>
         <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="load_program2_buttonActionPerformed"/>

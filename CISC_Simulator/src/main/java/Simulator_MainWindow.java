@@ -1,4 +1,6 @@
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.Scanner;
@@ -108,7 +110,8 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private int cycleCount = 0;
     private Boolean p1_active = false;
     private Boolean p1_firstTime = true;
-
+    private Boolean p2_active = false;
+    
     //private Map<JFormattedTextField,Word> wordMap;
     public static int op_translator(String S_instruction, Instructions instruction)
     {
@@ -125,6 +128,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                + Instructions.int_to_binary_xbits(indirect, 1)
                + Instructions.int_to_binary_xbits(address, 5);
     }
+    
 
     /**
      * Creates new form Simulator_MainWindow
@@ -138,7 +142,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         instructions = Instructions.instance();
         io = IOHandler.instance();
 
-        for (int i = 0; i < 2048; i++)
+        for (int i = 0; i < memory.MEMORY_SIZE; i++)
         {
             memory.setMemory(i, ZEROED_REGISTER);
         }
@@ -931,7 +935,6 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         });
 
         load_program2_button.setText("Load Program 2");
-        load_program2_button.setEnabled(false);
         load_program2_button.addActionListener(new java.awt.event.ActionListener()
         {
             public void actionPerformed(java.awt.event.ActionEvent evt)
@@ -968,7 +971,6 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                             .addGroup(layout.createSequentialGroup()
                                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                     .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                         .addComponent(jLabel3)
                                         .addGap(65, 65, 65))
                                     .addGroup(layout.createSequentialGroup()
@@ -1297,15 +1299,19 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void io_areaKeyTyped(java.awt.event.KeyEvent evt)//GEN-FIRST:event_io_areaKeyTyped
     {//GEN-HEADEREND:event_io_areaKeyTyped
         // TODO add your handling code here:
- 
-        if(p1_active)
-        {           
-            p1_active = false;
-        }
-        if(evt.getKeyChar() == '\n')
+        if(!p2_active)
         {
-            p1_active = true;
-            io_area.append("\nType a number press enter: ");
+            if(p1_active)
+            {           
+                p1_active = false;
+            }
+            if(evt.getKeyChar() == '\n')
+            {
+                p1_active = true;
+
+                io_area.append("\nType a number press enter: ");
+
+            }
         }
         System.out.print(evt.getKeyChar());
         io.pushInput(Character.toString(evt.getKeyChar()));
@@ -1314,111 +1320,171 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 
     private void load_program2_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_program2_buttonActionPerformed
     {//GEN-HEADEREND:event_load_program2_buttonActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_load_program2_buttonActionPerformed
 
-    private void load_program1_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_program1_buttonActionPerformed
-    {//GEN-HEADEREND:event_load_program1_buttonActionPerformed
-        // TODO add your handling code here:
-                AssemblyTranslator translator = new AssemblyTranslator();
-        JFileChooser chooser = new JFileChooser();
-        int retVal = chooser.showOpenDialog(this);
+        for (int i = 0; i < memory.MEMORY_SIZE; i++)
+        {
+            memory.setMemory(i, ZEROED_REGISTER);
+        }
+
+        for (JFormattedTextField field : wordFields)
+        {
+            field.setText(ZEROED_REGISTER);
+            //field.setEnabled(false);
+        }
+        
+        io_area.setText("");
+        
+        
+        p1_active = false;
+        p1_firstTime = false;
+        p2_active = true;
+        
+        
+        AssemblyTranslator translator = new AssemblyTranslator();
+        JFileChooser chooser = new JFileChooser(System.getProperty("user.dir"));
+        int retVal = chooser.showDialog(this,"Open Program file");
         String filepath = chooser.getSelectedFile().getPath();
-        translator.loadAssembly("Program1.txt");
-//        Scanner in = new Scanner(System.in);
-//        for(int i = 0; i < 10; i++)
-//        {
-//            System.out.println("Enter assembly:");
-//            String line = in.nextLine();
-//            System.out.println(translator.makeSimpleInstruction(line));
-//        }
-
-//        io_area.append("Type a number press enter: ");
-//        p1_active = true;
-//        p1_firstTime = true;
-//        
-    	registers.setPC(Instructions.int_to_binary_16bits(255));
+        
+        JFileChooser chooser2 = new JFileChooser(System.getProperty("user.dir"));
+        int retVal2 = chooser2.showDialog(this,"Open Paragraph file");
+        String filepath2 = chooser2.getSelectedFile().getPath();
+        
+        System.out.println(filepath);
+        System.out.println(filepath2);
+        translator.loadAssembly(filepath);
+        
+        registers.setPC(Instructions.int_to_binary_16bits(255));
     	registers.setX1("0000001111110110");//X1=1014
     	registers.setX2("0000000000011111");//X2=32
         memory.setMemory(7,Instructions.int_to_binary_16bits(32));
         memory.setMemory(8,Instructions.int_to_binary_16bits(64));
-//    	memory.setMemory(1021, "0000001111101100");//1004
-//    	memory.setMemory(1023, "0111111111111111");
-//        memory.setMemory(1050, "1111010000000000");
-//        memory.setMemory(1051, "0000100001001010");
-//        memory.setMemory(1052, "1111010000000000");
-//        memory.setMemory(1053, "0000100001001011");
-//        memory.setMemory(1054, "1111010000000000");
-//        memory.setMemory(1055, "0000100001001100");
-//        memory.setMemory(1056, "1111010000000000");
-//        memory.setMemory(1057, "0000100001001101");
-//        memory.setMemory(1058, "1111010000000000");
-//        memory.setMemory(1059, "0000100001001110");
-//        memory.setMemory(1060, "1111010000000000");
-//        memory.setMemory(1061, "0000100001001111");
-//        memory.setMemory(1062, "1111010000000000");
-//        memory.setMemory(1063, "0000100001010000");
-//        memory.setMemory(1064, "1111010000000000");
-//        memory.setMemory(1065, "0000100001010001");
-//        memory.setMemory(1066, "1111010000000000");
-//        memory.setMemory(1067, "0000100001010010");
-//        memory.setMemory(1068, "1111010000000000");
-//        memory.setMemory(1069, "0000100001010011");
-//        memory.setMemory(1070, "1111010000000000");
-//        memory.setMemory(1071, "0000100001010100");
-//        memory.setMemory(1072, "1111010000000000");
-//        memory.setMemory(1073, "0000100001010101");
-//        memory.setMemory(1074, "1111010000000000");
-//        memory.setMemory(1075, "0000100001010110");
-//        memory.setMemory(1076, "1111010000000000");
-//        memory.setMemory(1077, "0000100001010111");
-//        memory.setMemory(1078, "1111010000000000");
-//        memory.setMemory(1079, "0000100001011000");
-//        memory.setMemory(1080, "1111010000000000");
-//        memory.setMemory(1081, "0000100001011001");
-//        memory.setMemory(1082, "1111010000000000");
-//        memory.setMemory(1083, "0000100001011010");
-//        memory.setMemory(1084, "1111010000000000");
-//        memory.setMemory(1085, "0000100001011011");
-//        memory.setMemory(1086, "1111010000000000");
-//        memory.setMemory(1087, "0000100001011100");
-//        memory.setMemory(1088, "1111010000000000");
-//        memory.setMemory(1089, "0000100001011101");
-//        memory.setMemory(1090, "1111010000000000");
-//        memory.setMemory(1091, "0000100001001000");//store the request from user to address 1022
-//        memory.setMemory(1092, "0011010000001010");//jump back to address 10
-//        memory.setMemory(10, "0001101100010101");//AIR R3 21
-//        memory.setMemory(10, "0001101100010101");//AIR R3 21
-//        memory.setMemory(11, "0000101101000110");//STR R3 1020
-//        memory.setMemory(12, "0000011101000110");//LDR R3 1020
-//        memory.setMemory(13, "0100001100001111");//SOB R3 15
-//        memory.setMemory(14, "1111100000000001");//output the closest number
-//        memory.setMemory(15, "0000011001001000");//LDR R2 0 0 1022
-//        memory.setMemory(16, "0001001101000111");//AMR R3 1021
-//        memory.setMemory(17, "0000101101000100");//STR R3 1018
-//        memory.setMemory(18, "0001011001100100");//SMR R2 0 1 1018
-//        memory.setMemory(19, "0101001010000000");//MLT R2 R2
-//        memory.setMemory(20, "0000101101000010");//STR R3 1016
-//        memory.setMemory(21, "0000011001000010");//LDR R2 1016(R2 store the current calculation result)
-//        memory.setMemory(22, "0001011101001001");//SMR R3 0 0 1023
-//        memory.setMemory(23, "0100011110000010");//JGE R3 0 0 34
-//        memory.setMemory(24, "0000101001001001");//STR R2 0 0 1023
-//        memory.setMemory(25, "0000010001100100");//LDR R0 0 1 1018
-//        memory.setMemory(26, "0000100001000011");//STR R0 0 0 1017
-//        memory.setMemory(27, "0000011101000111");//LDR R3 1021
-//        memory.setMemory(28, "0001101100000010");//AIR R3 2
-//        memory.setMemory(29, "0000101101000111");//STR R3 1021
-//        memory.setMemory(30, "0000011101000110");//LDR R3 1020
-//        memory.setMemory(31, "0001111100000001");//SIR R3 1
-//        memory.setMemory(32, "0000101101000110");//STR R3 1020
-//        memory.setMemory(33, "0011010000001100");//JMA 12
-//        memory.setMemory(34, "0000011101000111");//LDR R3 1021
-//        memory.setMemory(35, "0001101100000010");//AIR R3 2
-//        memory.setMemory(36, "0000101101000111");//STR R3 1021
-//        memory.setMemory(37, "0000011101000110");//LDR R3 1020
-//        memory.setMemory(38, "0001111100000001");//SIR R3 1
-//        memory.setMemory(39, "0000101101000110");//STR R3 1020
-//        memory.setMemory(40, "0011010000001100");//JMA 12
+        
+        
+        Scanner in;
+        try
+        {
+            in = new Scanner(new File(filepath2));
+        }
+        catch(FileNotFoundException err)
+        {
+            System.out.println("ERROR READING FILE: " + filepath2);
+            return;
+        }
+        while(in.hasNext())
+        {
+            String next = in.nextLine();
+            io.pushOutput(next);
+            io_area.append(next);
+        }
+        
+        updateDisplay();
+
+    }//GEN-LAST:event_load_program2_buttonActionPerformed
+
+    private void load_program1_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_program1_buttonActionPerformed
+    {//GEN-HEADEREND:event_load_program1_buttonActionPerformed
+
+        for (int i = 0; i < memory.MEMORY_SIZE; i++)
+        {
+            memory.setMemory(i, ZEROED_REGISTER);
+        }
+
+        for (JFormattedTextField field : wordFields)
+        {
+            field.setText(ZEROED_REGISTER);
+            //field.setEnabled(false);
+        }
+        io_area.setText("");
+
+        io_area.append("Type a number press enter: ");
+        p1_active = true;
+        p1_firstTime = true;
+        p2_active = false;
+        
+    	registers.setPC("0000010000011010");
+    	registers.setX1("0000001111110110");//X1=1014
+    	registers.setX2("0000000000011111");//X2=32
+        memory.setMemory(7,Instructions.int_to_binary_16bits(32));
+        memory.setMemory(8,Instructions.int_to_binary_16bits(64));
+    	memory.setMemory(1021, "0000001111101100");//1004
+    	memory.setMemory(1023, "0111111111111111");
+        memory.setMemory(1050, "1111010000000000");
+        memory.setMemory(1051, "0000100001001010");
+        memory.setMemory(1052, "1111010000000000");
+        memory.setMemory(1053, "0000100001001011");
+        memory.setMemory(1054, "1111010000000000");
+        memory.setMemory(1055, "0000100001001100");
+        memory.setMemory(1056, "1111010000000000");
+        memory.setMemory(1057, "0000100001001101");
+        memory.setMemory(1058, "1111010000000000");
+        memory.setMemory(1059, "0000100001001110");
+        memory.setMemory(1060, "1111010000000000");
+        memory.setMemory(1061, "0000100001001111");
+        memory.setMemory(1062, "1111010000000000");
+        memory.setMemory(1063, "0000100001010000");
+        memory.setMemory(1064, "1111010000000000");
+        memory.setMemory(1065, "0000100001010001");
+        memory.setMemory(1066, "1111010000000000");
+        memory.setMemory(1067, "0000100001010010");
+        memory.setMemory(1068, "1111010000000000");
+        memory.setMemory(1069, "0000100001010011");
+        memory.setMemory(1070, "1111010000000000");
+        memory.setMemory(1071, "0000100001010100");
+        memory.setMemory(1072, "1111010000000000");
+        memory.setMemory(1073, "0000100001010101");
+        memory.setMemory(1074, "1111010000000000");
+        memory.setMemory(1075, "0000100001010110");
+        memory.setMemory(1076, "1111010000000000");
+        memory.setMemory(1077, "0000100001010111");
+        memory.setMemory(1078, "1111010000000000");
+        memory.setMemory(1079, "0000100001011000");
+        memory.setMemory(1080, "1111010000000000");
+        memory.setMemory(1081, "0000100001011001");
+        memory.setMemory(1082, "1111010000000000");
+        memory.setMemory(1083, "0000100001011010");
+        memory.setMemory(1084, "1111010000000000");
+        memory.setMemory(1085, "0000100001011011");
+        memory.setMemory(1086, "1111010000000000");
+        memory.setMemory(1087, "0000100001011100");
+        memory.setMemory(1088, "1111010000000000");
+        memory.setMemory(1089, "0000100001011101");
+        memory.setMemory(1090, "1111010000000000");
+        memory.setMemory(1091, "0000100001001000");//store the request from user to address 1022
+        memory.setMemory(1092, "0011010000001010");//jump back to address 10
+        memory.setMemory(10, "0001101100010101");//AIR R3 21
+        memory.setMemory(10, "0001101100010101");//AIR R3 21
+        memory.setMemory(11, "0000101101000110");//STR R3 1020
+        memory.setMemory(12, "0000011101000110");//LDR R3 1020
+        memory.setMemory(13, "0100001100001111");//SOB R3 15
+        memory.setMemory(14, "1111100000000001");//output the closest number
+        memory.setMemory(15, "0000011001001000");//LDR R2 0 0 1022
+        memory.setMemory(16, "0001001101000111");//AMR R3 1021
+        memory.setMemory(17, "0000101101000100");//STR R3 1018
+        memory.setMemory(18, "0001011001100100");//SMR R2 0 1 1018
+        memory.setMemory(19, "0101001010000000");//MLT R2 R2
+        memory.setMemory(20, "0000101101000010");//STR R3 1016
+        memory.setMemory(21, "0000011001000010");//LDR R2 1016(R2 store the current calculation result)
+        memory.setMemory(22, "0001011101001001");//SMR R3 0 0 1023
+        memory.setMemory(23, "0100011110000010");//JGE R3 0 0 34
+        memory.setMemory(24, "0000101001001001");//STR R2 0 0 1023
+        memory.setMemory(25, "0000010001100100");//LDR R0 0 1 1018
+        memory.setMemory(26, "0000100001000011");//STR R0 0 0 1017
+        memory.setMemory(27, "0000011101000111");//LDR R3 1021
+        memory.setMemory(28, "0001101100000010");//AIR R3 2
+        memory.setMemory(29, "0000101101000111");//STR R3 1021
+        memory.setMemory(30, "0000011101000110");//LDR R3 1020
+        memory.setMemory(31, "0001111100000001");//SIR R3 1
+        memory.setMemory(32, "0000101101000110");//STR R3 1020
+        memory.setMemory(33, "0011010000001100");//JMA 12
+        memory.setMemory(34, "0000011101000111");//LDR R3 1021
+        memory.setMemory(35, "0001101100000010");//AIR R3 2
+        memory.setMemory(36, "0000101101000111");//STR R3 1021
+        memory.setMemory(37, "0000011101000110");//LDR R3 1020
+        memory.setMemory(38, "0001111100000001");//SIR R3 1
+        memory.setMemory(39, "0000101101000110");//STR R3 1020
+        memory.setMemory(40, "0011010000001100");//JMA 12
+        
+        updateDisplay();
     }//GEN-LAST:event_load_program1_buttonActionPerformed
     
     

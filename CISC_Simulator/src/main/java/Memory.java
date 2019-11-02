@@ -49,6 +49,14 @@ public class Memory
 
         return inst;
     }
+    
+    public void reset()
+    {
+        for (String address : memory)
+        {
+            address = ""
+        }
+    }
 
     //setter and getter
     public String getMemory(int address)

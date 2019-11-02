@@ -206,7 +206,7 @@ public class AssemblyTranslator
         }
         catch(FileNotFoundException err)
         {
-            System.out.println("FILE NOT FOUND: " + filepath);
+            System.out.println("ERROR READING FILE: " + filepath);
             return;
         }
         
