@@ -1361,6 +1361,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         
         
         Scanner in;
+        int charCount = 0;
         try
         {
             in = new Scanner(new File(filepath2));
@@ -1373,10 +1374,19 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         while(in.hasNext())
         {
             String next = in.nextLine();
-            io.pushOutput(next);
-            io_area.append(next);
+            for (int i = 0; i < next.length(); i++)
+            {
+                char c = next.charAt(i);
+                charCount++;
+                String binary = Instructions.characterToBinary(String.valueOf(c));
+                memory.setMemory(memory.HEAP_START_ADDRESS + charCount, binary);
+                //io.pushOutput(next);
+                io_area.append(String.valueOf(c));
+            }
         }
         
+        memory.setMemory(memory.HEAP_START_ADDRESS, Instructions.int_to_binary_16bits(charCount));
+        io_area.append("\nEnter a word to find and press <enter>: ");
         updateDisplay();
 
     }//GEN-LAST:event_load_program2_buttonActionPerformed

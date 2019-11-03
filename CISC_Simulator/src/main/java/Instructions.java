@@ -49,14 +49,14 @@ public class Instructions {
     }
     
   //convert a char to a 16bit binary number
-    public String characterToBinary(String character)
+    public static String characterToBinary(String character)
     {
         int decimal = character.charAt(0);
         return int_to_binary(decimal);
     }
     
     //convert a 16bit binary number to a char
-    public String binaryToCharacter(String binary)
+    public static String binaryToCharacter(String binary)
     {
         int val = binary_to_int(binary);
         return Character.toString((char)val);
