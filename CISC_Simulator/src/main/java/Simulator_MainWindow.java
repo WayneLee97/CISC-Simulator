@@ -208,7 +208,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         
         
         //update pipelinedisplay
-        String pipeline_text = "Stage\tinst\tadr\n";
+        String pipeline_text = "STAGE\tINSTRUCTION\tADDRESS\n";
 
         if(IF != null)
         {
@@ -357,7 +357,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         //a variable keep the trace whether PC has been changed inside of instructions
         boolean PC_changed = false;
         //implement the instruction for this step
-        if (!this.memory.getMemory(instructions.binary_to_int(registers.getPC())).equals("0000000000000000"))
+        //if (!this.memory.getMemory(instructions.binary_to_int(registers.getPC())).equals("0000000000000000"))
         {
             //execute the instruction,but first use the translator function to get the operation code
             //int op_code = op_translator(memory.getMemory(instructions.binary_to_int(registers.getPC())), instructions);
@@ -365,6 +365,8 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             //advance pipeline
             if(MEM != null)
             {
+                if(MEM.instruction.equals(ZEROED_REGISTER))
+                    return;
                 op_code = MEM.opCode;
                 
                 if(MEM.isJump)
