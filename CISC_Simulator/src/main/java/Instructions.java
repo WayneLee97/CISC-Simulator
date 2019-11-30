@@ -6,6 +6,7 @@ public class Instructions {
     public static final float FLOAT_MAX = 18410715276690587648f;
     public static final float FLOAT_MIN = -18410715276690587648f;
     
+
     private static Instructions inst = null;
     private Registers registers;
     private Memory mm;

@@ -36,61 +36,37 @@ class ClockCycler extends TimerTask
     }
 }
 
-enum I
+class PipedInstruction
 {
-    LDR(1),STR(2),LDA(3),LDX(41),STX(42),
-    JZ(10),JNE(11),JCC(12),JMA(13),JSR(14),RFS(15),SOB(16),JGE(17),
-    AMR(4),SMR(5),AIR(6),SIR(7),MLT(20),DVD(21),
-    TRR(22),AND(23),ORR(24),NOT(25),
-    SRC(31),RRC(32),
-    IN(61),OUT(62);
+    public String instruction = "";
+    public int address = -1;
+    public int opCode = 0;
+    public int register = -1;
     
-    private int opCode;
-    private I(int opCode)
+    public boolean isJump = false;
+    public int EA = -1;
+
+    PipedInstruction(String instruct, int adr)
     {
-        this.opCode = opCode;
+        instruction = instruct;
+        address = adr;
+        initialize();
     }
     
-    public String toString()
+    private void initialize()
     {
-        return Instructions.int_to_binary_xbits(opCode,6);
+        opCode = Instructions.instance().binary_to_int(instruction.substring(0,6));
+        register = Instructions.instance().binary_to_int(instruction.substring(6,8));
+        if(opCode >= 10 && opCode <= 17 )
+            isJump = true;
+        EA = Instructions.instance().EA_calculator(instruction);
+        
+        
     }
+    
+    
     
 }
-
-enum R
-{
-    R0(0),R1(1),R2(2),R3(3);
-    
-    private int opCode;
-    private R(int opCode)
-    {
-        this.opCode = opCode;
-    }
-    
-    public String toString()
-    {
-        return Instructions.int_to_binary_xbits(opCode,2);
-    }
-}
-
-enum X
-{
-    X0(0),X1(1),X2(2),X3(3);
-    
-    private int opCode;
-    private X(int opCode)
-    {
-        this.opCode = opCode;
-    }
-    
-    public String toString()
-    {
-        return Instructions.int_to_binary_xbits(opCode,2);
-    }
-}
-
-
 
 public class Simulator_MainWindow extends javax.swing.JFrame
 {
@@ -112,21 +88,18 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private Boolean p1_firstTime = true;
     private Boolean p2_active = false;
     
+    private PipedInstruction IF;
+    private PipedInstruction ID;
+    private PipedInstruction EX;
+    private PipedInstruction MEM;
+    
+    
+    
     //private Map<JFormattedTextField,Word> wordMap;
     public static int op_translator(String S_instruction, Instructions instruction)
     {
         String op_code = S_instruction.substring(0, 6);
         return instruction.binary_to_int(op_code);
-    }
-    
-    public static String makeInstruction(I instruction,R register, X index, int indirect, int address)
-    {
-       
-       return instruction.toString()
-               + register.toString()
-               + index.toString()
-               + Instructions.int_to_binary_xbits(indirect, 1)
-               + Instructions.int_to_binary_xbits(address, 5);
     }
     
 
@@ -181,6 +154,11 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         ClockCycler cycler = new ClockCycler(this);
         timer.schedule(cycler, CYCLE_TIME);
 
+        IF = null;
+        ID = null;
+        EX = null;
+        MEM = null;
+        
     }
 
     private void setInputType(InputType type)
@@ -222,12 +200,83 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 
         String binary = intToBinaryString(Integer.decode(decimal));
 
-        System.out.println(decimal + " = " + binary);
         return binary;
     }
 
     public void updateDisplay()
     {
+        
+        
+        //update pipelinedisplay
+        String pipeline_text = "Stage\tinst\tadr\n";
+
+        if(IF != null)
+        {
+            if(inputType == inputType.BINARY)
+            {
+                pipeline_text = pipeline_text.concat(" IF:\t" + IF.instruction + "\t" + IF.address + "\n");
+            }
+            else
+            {
+                pipeline_text = pipeline_text.concat(" IF:\t" + binaryToIntString(IF.instruction) + "\t" + IF.address + "\n");
+            }
+        }
+        else
+        {
+            pipeline_text = pipeline_text.concat(" IF:\t" + "NULL" + "\t" + "NULL" + "\n");
+        }
+        
+        if(ID != null)
+        {
+            if(inputType == inputType.BINARY)
+            {
+                pipeline_text = pipeline_text.concat(" ID:\t" + ID.instruction + "\t" + ID.address + "\n");
+            }
+            else
+            {
+                pipeline_text = pipeline_text.concat(" ID:\t" + binaryToIntString(ID.instruction) + "\t" + ID.address + "\n");
+            }
+        }
+        else
+        {
+            pipeline_text = pipeline_text.concat(" ID:\t" + "NULL" + "\t" + "NULL" + "\n");
+        }
+
+        if(EX != null)
+        {
+            if(inputType == inputType.BINARY)
+            {
+                pipeline_text = pipeline_text.concat(" EX:\t" + EX.instruction + "\t" + EX.address + "\n");
+            }
+            else
+            {
+                pipeline_text = pipeline_text.concat(" EX:\t" + binaryToIntString(EX.instruction) + "\t" + EX.address + "\n");
+            }
+        }
+        else
+        {
+            pipeline_text = pipeline_text.concat(" EX:\t" + "NULL" + "\t" + "NULL" + "\n");
+        } 
+        
+        if(MEM != null)
+        {
+            if(inputType == inputType.BINARY)
+            {
+                pipeline_text = pipeline_text.concat("MEM:\t" + MEM.instruction + "\t" + MEM.address + "\n");
+            }
+            else
+            {
+                pipeline_text = pipeline_text.concat("MEM:\t" + binaryToIntString(MEM.instruction) + "\t" + MEM.address + "\n");
+            }
+        }
+        else
+        {
+            pipeline_text = pipeline_text.concat("MEM:\t" + "NULL" + "\t" + "NULL" + "\n");
+        }
+        pipeline_area.setText(pipeline_text);
+
+                
+        
         //update memory cache display
         String cache_text = "";
         for (int i = 0; i < memory.MAX_CACHE; i++)
@@ -294,6 +343,9 @@ public class Simulator_MainWindow extends javax.swing.JFrame
             int memoryAddress = Integer.decode(Address_Field.getText());
             Value_Field.setText(binaryToIntString(memory.getMemory(memoryAddress)));
         }
+        
+        
+        
     }
 
     public void cycle()
@@ -305,183 +357,226 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         //a variable keep the trace whether PC has been changed inside of instructions
         boolean PC_changed = false;
         //implement the instruction for this step
-        if (!this.memory.getMemory(this.instructions.binary_to_int(registers.getPC())).equals("0000000000000000"))
+        if (!this.memory.getMemory(instructions.binary_to_int(registers.getPC())).equals("0000000000000000"))
         {
             //execute the instruction,but first use the translator function to get the operation code
-            int op_code = op_translator(memory.getMemory(instructions.binary_to_int(registers.getPC())), instructions);
-            //FOR TESTING DELETE THIS LATER
-            if(memory.getMemory(instructions.binary_to_int(registers.getPC())).equals("0001011000101110")){
-            	System.out.println("here we are");
+            //int op_code = op_translator(memory.getMemory(instructions.binary_to_int(registers.getPC())), instructions);
+            int op_code = 0;
+            //advance pipeline
+            if(MEM != null)
+            {
+                op_code = MEM.opCode;
+                
+                if(MEM.isJump)
+                {
+                    registers.setPC(instructions.int_to_binary_16bits(MEM.address+1));
+                    PC_changed = true;
+                    EX = null;
+                    ID = null;
+                    IF = null;
+                }
+                else
+                {
+                    if(EX != null && (MEM.register == EX.register || MEM.EA == EX.EA))
+                    {
+                        registers.setPC(instructions.int_to_binary_16bits(MEM.address+1));
+                        PC_changed = true;
+                        EX = null;
+                        ID = null;
+                        IF = null;
+                        
+                    }
+                }
+                switch (op_code)
+                {
+                    //load register from the memory, LDR
+                    case 1:
+                        registers.setIR(MEM.instruction);
+                        instructions.LDR(MEM.instruction);
+                        break;
+                    //store register from memory, STR
+                    case 2:
+                        registers.setIR(MEM.instruction);
+                        instructions.STR(MEM.instruction);
+                        break;
+                    //load register with address, LDA
+                    case 3:
+                        registers.setIR(MEM.instruction);
+                        instructions.LDA(MEM.instruction);
+                        break;
+                    //load index register from the memory, LDX
+                    case 41:
+                        registers.setIR(MEM.instruction);
+                        instructions.LDX(MEM.instruction);
+                        break;
+                    //store index register to memory, STX
+                    case 42:
+                        registers.setIR(MEM.instruction);
+                        instructions.STX(MEM.instruction);
+                        break;
+                    //jump if zero
+                    case 10:
+                        registers.setIR(MEM.instruction);
+                        instructions.JZ(MEM.instruction);
+                        //the pc has changed inside, so we set PC_changed  = true
+                        PC_changed = true;
+                        break;
+                    //jump if not equal
+                    case 11:
+                        registers.setIR(MEM.instruction);
+                        instructions.JNE(MEM.instruction);
+                        //the pc has changed inside, so we set PC_changed  = true
+                        PC_changed = true;
+                        break;
+                    //jump if condition code
+                    case 12:
+                        registers.setIR(MEM.instruction);
+                        instructions.JCC(MEM.instruction);
+                        //the pc has changed inside, so we set PC_changed  = true
+                        PC_changed = true;
+                        break;
+                    //unconditional jump to address
+                    case 13:
+                        registers.setIR(MEM.instruction);
+                        instructions.JMA(MEM.instruction);
+                        //the pc has changed inside, so we set PC_changed  = true
+                        PC_changed = true;
+                        break;
+                    //jump and save return address
+                    case 14:
+                        registers.setIR(MEM.instruction);
+                        instructions.JSR(MEM.instruction);
+                        //the pc has changed inside, so we set PC_changed  = true
+                        PC_changed = true;
+                        break;
+                    //return from subroutine with return code as immediate portion stored in the instructions' address field
+                    case 15:
+                        registers.setIR(MEM.instruction);
+                        instructions.RFS(MEM.instruction);
+                        //the pc has changed inside, so we set PC_changed  = true
+                        PC_changed = true;
+                        break;
+                    //subtract one and branch
+                    case 16:
+                        registers.setIR(MEM.instruction);
+                        instructions.SOB(MEM.instruction);
+                        //the pc has changed inside, so we set PC_changed  = true
+                        PC_changed = true;
+                        break;
+                    //jump greater than or equal to
+                    case 17:
+                        registers.setIR(MEM.instruction);
+                        instructions.JGE(MEM.instruction);
+                        //the pc has changed inside, so we set PC_changed  = true
+                        PC_changed = true;
+                        break;
+                    //Add Memory To Register
+                    case 4:
+                        registers.setIR(MEM.instruction);
+                        instructions.AMR(MEM.instruction);
+                        break;
+                    //Subtract Memory From Register
+                    case 5:
+                        registers.setIR(MEM.instruction);
+                        instructions.SMR(MEM.instruction);
+                        break;
+                    //Add  Immediate to Register
+                    case 6:
+                        registers.setIR(MEM.instruction);
+                        instructions.AIR(MEM.instruction);
+                        break;
+                    //Subtract  Immediate  from Register
+                    case 7:
+                        registers.setIR(MEM.instruction);
+                        instructions.SIR(MEM.instruction);
+                        break;
+                    //Multiply Register by Register
+                    case 20:
+                        registers.setIR(MEM.instruction);
+                        instructions.MLT(MEM.instruction);
+                        break;
+                    //Divide Register by Register
+                    case 21:
+                        registers.setIR(MEM.instruction);
+                        instructions.DVD(MEM.instruction);
+                        break;
+                    //Test the Equality of Register and Register
+                    case 22:
+                        registers.setIR(MEM.instruction);
+                        instructions.TRR(MEM.instruction);
+                        break;
+                    //Logical And of Register and Register
+                    case 23:
+                        registers.setIR(MEM.instruction);
+                        instructions.AND(MEM.instruction);
+                        break;
+                    //Logical Or of Register and Register
+                    case 24:
+                        registers.setIR(MEM.instruction);
+                        instructions.ORR(MEM.instruction);
+                        break;
+                    //Logical Not of Register and Register
+                    case 25:
+                        registers.setIR(MEM.instruction);
+                        instructions.NOT(MEM.instruction);
+                        break;
+                    //Shift Register by Count
+                    case 31:
+                        registers.setIR(MEM.instruction);
+                        instructions.SRC(MEM.instruction);
+                        break;
+                    //Rotate Register by Count
+                    case 32:
+                        registers.setIR(MEM.instruction);
+                        instructions.RRC(MEM.instruction);
+                        break;
+                    //Input Character To Register from Device
+                    case 61:
+                        registers.setIR(MEM.instruction);
+                        instructions.IN(MEM.instruction);
+                        break;
+                    //Output Character To Register from Device
+                    case 62:
+                        registers.setIR(MEM.instruction);
+                        instructions.OUT(MEM.instruction);
+                        break;
+                    case 43:
+                        registers.setIR(MEM.instruction);
+                        instructions.SET(MEM.instruction);
+                        break;
+                    default:
+                        break;
+                }
+                
+                MEM = null;
+            }
+            //if(EX != null)
+            {
+                MEM = EX;
+            }
+            //if(ID != null)
+            {
+                EX = ID;
+            }
+            //if(IF != null)
+            {
+                ID = IF;
             }
             
-            switch (op_code)
+                //go to the next instruction
+            if (!PC_changed)
             {
-                //load register from the memory, LDR
-                case 1:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.LDR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //store register from memory, STR
-                case 2:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.STR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //load register with address, LDA
-                case 3:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.LDA(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //load index register from the memory, LDX
-                case 41:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.LDX(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //store index register to memory, STX
-                case 42:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.STX(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //jump if zero
-                case 10:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JZ(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    //the pc has changed inside, so we set PC_changed  = true
-                    PC_changed = true;
-                    break;
-                //jump if not equal
-                case 11:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JNE(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    //the pc has changed inside, so we set PC_changed  = true
-                    PC_changed = true;
-                    break;
-                //jump if condition code
-                case 12:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JCC(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    //the pc has changed inside, so we set PC_changed  = true
-                    PC_changed = true;
-                    break;
-                //unconditional jump to address
-                case 13:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JMA(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    //the pc has changed inside, so we set PC_changed  = true
-                    PC_changed = true;
-                    break;
-                //jump and save return address
-                case 14:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JSR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    //the pc has changed inside, so we set PC_changed  = true
-                    PC_changed = true;
-                    break;
-                //return from subroutine with return code as immediate portion stored in the instructions' address field
-                case 15:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.RFS(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    //the pc has changed inside, so we set PC_changed  = true
-                    PC_changed = true;
-                    break;
-                //subtract one and branch
-                case 16:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.SOB(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    //the pc has changed inside, so we set PC_changed  = true
-                    PC_changed = true;
-                    break;
-                //jump greater than or equal to
-                case 17:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.JGE(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    //the pc has changed inside, so we set PC_changed  = true
-                    PC_changed = true;
-                    break;
-                //Add Memory To Register
-                case 4:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.AMR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Subtract Memory From Register
-                case 5:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.SMR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Add  Immediate to Register
-                case 6:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.AIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Subtract  Immediate  from Register
-                case 7:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.SIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Multiply Register by Register
-                case 20:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.MLT(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Divide Register by Register
-                case 21:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.DVD(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Test the Equality of Register and Register
-                case 22:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.TRR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Logical And of Register and Register
-                case 23:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.AND(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Logical Or of Register and Register
-                case 24:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.ORR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Logical Not of Register and Register
-                case 25:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.NOT(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Shift Register by Count
-                case 31:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.SRC(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Rotate Register by Count
-                case 32:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.RRC(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Input Character To Register from Device
-                case 61:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.IN(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                //Output Character To Register from Device
-                case 62:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.OUT(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                case 43:
-                    registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    this.instructions.SET(memory.getMemory(instructions.binary_to_int(registers.getPC())));
-                    break;
-                default:
-                    break;
+                int next_address = instructions.binary_to_int(registers.getPC()) + 1;
+                registers.setPC(instructions.int_to_binary_16bits(next_address));
             }
+            int address = instructions.binary_to_int(registers.getPC());
+            IF = new PipedInstruction(memory.getMemory(address),address);
+            
+            
+            
         }
 
-        //go to the next instruction
-        if (!PC_changed)
-        {
-            int next_address = this.instructions.binary_to_int(registers.getPC()) + 1;
-            registers.setPC(this.instructions.int_to_binary_16bits(next_address));
-        }
+    
 
         String output = "";
         while (io.hasOutput())
@@ -555,6 +650,9 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         cache_area = new javax.swing.JTextArea();
+        jPanel3 = new javax.swing.JPanel();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        pipeline_area = new javax.swing.JTextArea();
         jScrollPane2 = new javax.swing.JScrollPane();
         io_area = new javax.swing.JTextArea();
         load_program1_button = new javax.swing.JButton();
@@ -912,6 +1010,29 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 
         jTabbedPane1.addTab("Cache", jPanel2);
 
+        pipeline_area.setColumns(20);
+        pipeline_area.setRows(5);
+        jScrollPane3.setViewportView(pipeline_area);
+
+        javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
+        jPanel3.setLayout(jPanel3Layout);
+        jPanel3Layout.setHorizontalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 290, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(328, Short.MAX_VALUE))
+        );
+        jPanel3Layout.setVerticalGroup(
+            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addContainerGap()
+                .addComponent(jScrollPane3, javax.swing.GroupLayout.DEFAULT_SIZE, 397, Short.MAX_VALUE)
+                .addContainerGap())
+        );
+
+        jTabbedPane1.addTab("Pipeline", jPanel3);
+
         jScrollPane2.setBackground(new java.awt.Color(0, 0, 0));
 
         io_area.setBackground(new java.awt.Color(0, 0, 0));
@@ -1263,6 +1384,11 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     	/*
     	 * mem[31] = 29, mem[30] = 31, mem[29] = 30, mem[28] = 30, IX[1] = 1, IX[2] = 2
     	 * */
+        IF = null;
+        ID = null;
+        EX = null;
+        MEM = null;
+        
     	memory.setMemory(31, "0000000000011101");
     	memory.setMemory(30, "0000000000011111");
     	memory.setMemory(29, "0000000000011110");
@@ -1287,7 +1413,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void user_input_areaKeyTyped(java.awt.event.KeyEvent evt)//GEN-FIRST:event_user_input_areaKeyTyped
     {//GEN-HEADEREND:event_user_input_areaKeyTyped
         // TODO add your handling code here:
-        System.out.print(evt.getKeyChar());
+        //System.out.print(evt.getKeyChar());
         io.pushInput(Character.toString(evt.getKeyChar()));
         
         // "\nEnter a number : "
@@ -1317,7 +1443,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 
             }
         }
-        System.out.print(evt.getKeyChar());
+        //System.out.print(evt.getKeyChar());
         io.pushInput(Character.toString(evt.getKeyChar()));
         
     }//GEN-LAST:event_io_areaKeyTyped
@@ -1325,6 +1451,10 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void load_program2_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_program2_buttonActionPerformed
     {//GEN-HEADEREND:event_load_program2_buttonActionPerformed
 
+        IF = null;
+        ID = null;
+        EX = null;
+        MEM = null;
         for (int i = 0; i < memory.MEMORY_SIZE; i++)
         {
             memory.setMemory(i, ZEROED_REGISTER);
@@ -1525,6 +1655,10 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private void load_program1_buttonActionPerformed(java.awt.event.ActionEvent evt)//GEN-FIRST:event_load_program1_buttonActionPerformed
     {//GEN-HEADEREND:event_load_program1_buttonActionPerformed
 
+        IF = null;
+        ID = null;
+        EX = null;
+        MEM = null;
         for (int i = 0; i < memory.MEMORY_SIZE; i++)
         {
             memory.setMemory(i, ZEROED_REGISTER);
@@ -1724,10 +1858,13 @@ public class Simulator_MainWindow extends javax.swing.JFrame
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JTabbedPane jTabbedPane1;
     private javax.swing.JButton load_program1_button;
     private javax.swing.JButton load_program2_button;
+    private javax.swing.JTextArea pipeline_area;
     // End of variables declaration//GEN-END:variables
 }
