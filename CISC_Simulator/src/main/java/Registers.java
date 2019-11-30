@@ -16,6 +16,8 @@ public class Registers {
 	private String MFR;
 	//condition code register. 4 bits
 	private int CC0, CC1, CC2, CC3;
+	//floating point register FR0 and FR1
+	private String FR0, FR1;
 	
 	private static Registers inst = null;
 	
@@ -164,5 +166,17 @@ public class Registers {
 	}
 	public void setCC3(int cC3) {
 		CC3 = cC3;
+	}
+	public String getFR0() {
+		return FR0;
+	}
+	public void setFR0(String fR0) {
+		FR0 = fR0;
+	}
+	public String getFR1() {
+		return FR1;
+	}
+	public void setFR1(String fR1) {
+		FR1 = fR1;
 	}
 }

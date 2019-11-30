@@ -1,6 +1,10 @@
+import java.math.BigInteger;
+
 public class Instructions {
 	public static final int OVERFLOW_MAX = 32767;
     public static final int UNDERFLOW_MIN = -32768;
+    public static final float FLOAT_MAX = 18410715276690587648f;
+    public static final float FLOAT_MIN = -18410715276690587648f;
     
     private static Instructions inst = null;
     private Registers registers;
@@ -108,6 +112,56 @@ public class Instructions {
         }
         return binary_number;
     }
+    
+    private float binary_to_fp(String float_binary){
+    	float_binary = "1100000100000000";
+		String sign_bit = float_binary.substring(0, 1);
+		String exponent_sign_bit = float_binary.substring(1, 2);
+		String exponent_binary = float_binary.substring(2, 8);
+		String mantissa_binary = float_binary.substring(8, 16);
+		
+		int exponent = Integer.parseInt(exponent_binary, 2);
+		if(exponent_sign_bit.equals("1")){
+			exponent = exponent * (-1);
+		}
+		exponent = exponent + 127;
+		exponent_binary = int_to_binary_xbits(exponent, 8);
+		String result = sign_bit + exponent_binary + mantissa_binary + "000000000000000";
+		int int_temp = new BigInteger(result, 2).intValue();
+		float result_float = Float.intBitsToFloat(int_temp);
+    	return result_float;
+    }
+    
+    private String fp_to_binary(float number_f){
+    	int intBits, exponent;
+    	String binary, sign_bit, exponent_binary, mantissa_binary, exponent_sign_bit;
+		intBits = Float.floatToIntBits(number_f); 
+		binary = Integer.toBinaryString(intBits);
+		if(binary.length() == 31){
+			sign_bit = "0";
+			exponent_binary = binary.substring(0, 8);
+			mantissa_binary = binary.substring(8, 16);
+		}else if(binary.length() == 32){
+			sign_bit = "1";
+			exponent_binary = binary.substring(1, 9);
+			mantissa_binary = binary.substring(9, 17);
+		}else{
+			sign_bit = "0";
+			exponent_binary = binary.substring(0, 7);
+			mantissa_binary = binary.substring(7, 15);
+		}
+		exponent = Integer.parseInt(exponent_binary, 2) - 127;
+		if(exponent < 0){
+			exponent_sign_bit = "1";
+			exponent_binary = exponent_sign_bit + int_to_binary_xbits(exponent*(-1), 6);
+		}else{
+			exponent_sign_bit = "0";
+			exponent_binary = exponent_sign_bit + int_to_binary_xbits(exponent, 6);
+		}
+		String result_binary = sign_bit + exponent_binary + mantissa_binary;
+    	return result_binary;
+    }
+    
     //ADD operation
     private String addOperation(String one, String two) {
         StringBuilder sb = new StringBuilder();
@@ -1128,5 +1182,142 @@ public class Instructions {
             String value = int_to_binary_16bits(immedValue);
             registers.setR3(value);
         }
+    }
+    
+    //floating add memory to register
+    public void FADD(String instruction){
+    	int EA = EA_calculator(instruction);
+    	 if (instruction.substring(6, 8).equals("00")) {//FR0
+             float temp_float = binary_to_fp(registers.getFR0()) + binary_to_fp(mm.getMemory(EA));
+             if(temp_float > FLOAT_MAX){
+            	 registers.setCC0(1);
+             }else if(temp_float < FLOAT_MIN){
+            	 registers.setCC1(1);
+             }else{
+            	 registers.setFR0(fp_to_binary(temp_float));
+             }
+         } else if(instruction.substring(6, 8).equals("01")){//FR1
+        	 float temp_float = binary_to_fp(registers.getFR1()) + binary_to_fp(mm.getMemory(EA));
+             if(temp_float > FLOAT_MAX){
+            	 registers.setCC0(1);
+             }else if(temp_float < FLOAT_MIN){
+            	 registers.setCC1(1);
+             }else{
+            	 registers.setFR1(fp_to_binary(temp_float));
+             }
+         }
+    }
+    
+    //floating subtract memory from register
+    public void FSUB(String instruction){
+    	int EA = EA_calculator(instruction);
+   	 if (instruction.substring(6, 8).equals("00")) {//FR0
+            float temp_float = binary_to_fp(registers.getFR0()) - binary_to_fp(mm.getMemory(EA));
+            if(temp_float > FLOAT_MAX){
+           	 registers.setCC0(1);
+            }else if(temp_float < FLOAT_MIN){
+           	 registers.setCC1(1);
+            }else{
+           	 registers.setFR0(fp_to_binary(temp_float));
+            }
+        } else if(instruction.substring(6, 8).equals("01")){//FR1
+       	 float temp_float = binary_to_fp(registers.getFR1()) - binary_to_fp(mm.getMemory(EA));
+            if(temp_float > FLOAT_MAX){
+           	 registers.setCC0(1);
+            }else if(temp_float < FLOAT_MIN){
+           	 registers.setCC1(1);
+            }else{
+           	 registers.setFR1(fp_to_binary(temp_float));
+            }
+        }
+    }
+    
+    //vector add
+    public void VADD(String instruction){
+    	int EA = EA_calculator(instruction);
+    	float vector_length;
+    	if(instruction.substring(6, 8).equals("00")){
+    		vector_length = binary_to_fp(registers.getFR0());
+    	}else{
+    		vector_length = binary_to_fp(registers.getFR1());
+    	}
+    	for(int i = 0; i < (int)vector_length; i++){
+    		String first_op = mm.getMemory(EA);
+    		String second_op = mm.getMemory(EA + (int)vector_length);
+    		int temp_result = binary_to_int(first_op) + binary_to_int(second_op);
+    		if(temp_result > OVERFLOW_MAX){
+    			registers.setCC0(1);
+    		}else if(temp_result < UNDERFLOW_MIN){
+    			registers.setCC1(1);
+    		}else{
+        		mm.setMemory(EA, int_to_binary_16bits(temp_result));
+    		}
+    		EA++;
+    	}
+    }
+    
+    //vector subtract
+    public void VSUB(String instruction){
+    	int EA = EA_calculator(instruction);
+    	float vector_length;
+    	if(instruction.substring(6, 8).equals("00")){
+    		vector_length = binary_to_fp(registers.getFR0());
+    	}else{
+    		vector_length = binary_to_fp(registers.getFR1());
+    	}
+    	for(int i = 0; i < (int)vector_length; i++){
+    		String first_op = mm.getMemory(EA);
+    		String second_op = mm.getMemory(EA + (int)vector_length);
+    		int temp_result = binary_to_int(first_op) - binary_to_int(second_op);
+    		if(temp_result > OVERFLOW_MAX){
+    			registers.setCC0(1);
+    		}else if(temp_result < UNDERFLOW_MIN){
+    			registers.setCC1(1);
+    		}else{
+        		mm.setMemory(EA, int_to_binary_16bits(temp_result));
+    		}
+    		EA++;
+    	}
+    }
+    
+    //convert to fixed or floating point number
+    public void CNVRT(String instruction){
+    	int EA = EA_calculator(instruction);
+    	if(instruction.substring(6, 8).equals("00")){
+    		String temp = mm.getMemory(EA);
+    		float temp_float = binary_to_fp(temp);
+    		int temp_int = (int)temp_float;
+    		temp = int_to_binary_16bits(temp_int);
+    		registers.setR0(temp);
+    	}else{
+    		String temp = mm.getMemory(EA);
+    		int temp_int = binary_to_int(temp);
+    		float temp_float = (float)temp_int;
+    		temp = fp_to_binary(temp_float);
+    		registers.setFR0(temp);
+    	}
+    }
+    
+    //load floating register from memory
+    public void LDFR(String instruction){
+    	int EA = EA_calculator(instruction);
+    	registers.setMAR(int_to_binary_16bits(EA));
+    	if(instruction.substring(6, 8).equals("00")){
+    		registers.setMBR(mm.getMemory(EA));
+    		registers.setFR0(mm.getMemory(EA));
+    	}else{
+    		registers.setMBR(mm.getMemory(EA));
+    		registers.setFR1(mm.getMemory(EA));
+    	}
+    }
+    
+    //store floating register to memory
+    public void STFR(String instruction){
+    	int EA = EA_calculator(instruction);
+    	if(instruction.substring(6, 8).equals("00")){
+    		mm.setMemory(EA, registers.getFR0());
+    	}else{
+    		mm.setMemory(EA, registers.getFR1());
+    	}
     }
 }
