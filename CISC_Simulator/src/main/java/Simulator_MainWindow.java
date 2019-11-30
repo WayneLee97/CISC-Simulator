@@ -96,7 +96,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
 {
     
     static final String ZEROED_REGISTER = "0000000000000000";
-    static final int CYCLE_TIME = 10;//made change here to get faster clock cycle
+    static final int CYCLE_TIME = 1;//made change here to get faster clock cycle
 
     private InputType inputType = InputType.BINARY;
 
@@ -309,6 +309,11 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         {
             //execute the instruction,but first use the translator function to get the operation code
             int op_code = op_translator(memory.getMemory(instructions.binary_to_int(registers.getPC())), instructions);
+            //FOR TESTING DELETE THIS LATER
+            if(memory.getMemory(instructions.binary_to_int(registers.getPC())).equals("0001011000101110")){
+            	System.out.println("here we are");
+            }
+            
             switch (op_code)
             {
                 //load register from the memory, LDR
@@ -459,7 +464,6 @@ public class Simulator_MainWindow extends javax.swing.JFrame
                     break;
                 //Output Character To Register from Device
                 case 62:
-                    io_area.append("Nearest number is: ");
                     registers.setIR(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     this.instructions.OUT(memory.getMemory(instructions.binary_to_int(registers.getPC())));
                     break;
@@ -486,7 +490,7 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         }
         io_area.append(output);
         updateDisplay();
-
+        
         if (RunCheckBox.isSelected())
         {
         	if(!registers.getPC().equals("0000000000001110")){
@@ -1340,25 +1344,151 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         p2_active = true;
         
         
-        AssemblyTranslator translator = new AssemblyTranslator();
-        JFileChooser chooser = new JFileChooser(System.getProperty("user.dir"));
-        int retVal = chooser.showDialog(this,"Open Program file");
-        String filepath = chooser.getSelectedFile().getPath();
+//        AssemblyTranslator translator = new AssemblyTranslator();
+//        JFileChooser chooser = new JFileChooser(System.getProperty("user.dir"));
+//        int retVal = chooser.showDialog(this,"Open Program file");
+//        String filepath = chooser.getSelectedFile().getPath();
         
         JFileChooser chooser2 = new JFileChooser(System.getProperty("user.dir"));
         int retVal2 = chooser2.showDialog(this,"Open Paragraph file");
         String filepath2 = chooser2.getSelectedFile().getPath();
         
-        System.out.println(filepath);
+//        System.out.println(filepath);
         System.out.println(filepath2);
-        translator.loadAssembly(filepath);
+//        translator.loadAssembly(filepath);
         
-        registers.setPC(Instructions.int_to_binary_16bits(255));
-    	registers.setX1("0000001111110110");//X1=1014
-    	registers.setX2("0000000000011111");//X2=32
+//        registers.setPC(Instructions.int_to_binary_16bits(255));
+        registers.setPC("0000011010100100");//Set PC to 1700
+    	registers.setX1("0000011101100010");//X1=1890
+    	registers.setX2("0000010111011100");//X2=1500
+    	registers.setX3("0000011010100100");//X3=1700
+    	memory.setMemory(11, instructions.int_to_binary_16bits(1611));//sentence compare
+    	memory.setMemory(12, instructions.int_to_binary_16bits(1616));//compare 1
+    	memory.setMemory(13, instructions.int_to_binary_16bits(1626));//end of sentence
+    	memory.setMemory(14, instructions.int_to_binary_16bits(1811));//word compare
+    	memory.setMemory(15, instructions.int_to_binary_16bits(1816));//compare 2
+    	memory.setMemory(16, instructions.int_to_binary_16bits(1826));//end of word
+    	memory.setMemory(1899, instructions.int_to_binary_16bits(1025));
+    	memory.setMemory(1897, instructions.int_to_binary_16bits(1));
+    	memory.setMemory(1896, instructions.int_to_binary_16bits(1800));
+    	memory.setMemory(1895, instructions.int_to_binary_16bits(1900));
+    	memory.setMemory(1894, instructions.int_to_binary_16bits(1951));
+    	memory.setMemory(1893, instructions.int_to_binary_16bits(2000));
+    	memory.setMemory(1892, instructions.int_to_binary_16bits(1900));
+    	memory.setMemory(1891, instructions.int_to_binary_16bits(1951));
+    	memory.setMemory(1890, instructions.int_to_binary_16bits(1600));
+    	memory.setMemory(1951, instructions.int_to_binary_16bits(116));//t
+    	memory.setMemory(1952, instructions.int_to_binary_16bits(111));//o
+    	memory.setMemory(1953, instructions.int_to_binary_16bits(119));//w
+    	memory.setMemory(1954, instructions.int_to_binary_16bits(110));//n
+    	memory.setMemory(2000, instructions.int_to_binary_16bits(4));
         memory.setMemory(7,Instructions.int_to_binary_16bits(32));
         memory.setMemory(8,Instructions.int_to_binary_16bits(64));
         
+        //test program
+        int start = 1700;
+        memory.setMemory(start++, "0000010001101001");
+        memory.setMemory(start++, "0001110000011111");
+        memory.setMemory(start++, "0001110000000001");
+        memory.setMemory(start++, "0010100001100110");//jz word
+        memory.setMemory(start++, "0000010001101001");
+        memory.setMemory(start++, "0001110000011111");
+        memory.setMemory(start++, "0001110000011111");
+        memory.setMemory(start++, "0001110000000001");
+        memory.setMemory(start++, "0010100001100000");// jz sentence
+        memory.setMemory(start++, "0000010001101001");
+        memory.setMemory(start++, "0001110000011111");
+        memory.setMemory(start++, "0001110000001111");
+        memory.setMemory(start++, "0010100001100000");//jz sentence
+        memory.setMemory(start++, "0000010001101001");
+        memory.setMemory(start++, "0000100001100010");
+        memory.setMemory(start++, "0000010001000010");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001000010");
+        memory.setMemory(start++, "0000010001001001");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001001001");
+        memory.setMemory(start++, "0001101000000001");
+        memory.setMemory(start++, "0011010011000000");//jma main
+
+        start = 1600;
+        memory.setMemory(start++, "0000010001000101");//sentence 1600
+        memory.setMemory(start++, "0000100001000010");
+        memory.setMemory(start++, "0000010001000100");
+        memory.setMemory(start++, "0000100001000001");
+        memory.setMemory(start++, "0001011001100011");
+        memory.setMemory(start++, "0010111000101101");//JNE R2 END_OF_SENTENCE
+        memory.setMemory(start++, "0000011001100011");
+        memory.setMemory(start++, "0001101000000001");
+        memory.setMemory(start++, "0000010001001000");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001001000");
+        memory.setMemory(start++, "0100001000101100");//SOB R2 COMPARE1 "sentence compare" 1611
+        memory.setMemory(start++, "0000010101001000");
+        memory.setMemory(start++, "0000011001000111");
+        memory.setMemory(start++, "1111100100000001");
+        memory.setMemory(start++, "1111101000000001");
+        memory.setMemory(start++, "0000010001100010");//compare1 1616
+        memory.setMemory(start++, "0001010001100001");
+        memory.setMemory(start++, "0010110000101101");//jne r0 END_OF_SENTENCE
+        memory.setMemory(start++, "0000010001000001");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001000001");
+        memory.setMemory(start++, "0000010001000010");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001000010");
+        memory.setMemory(start++, "0011010000101011");//jma sentence compare
+        memory.setMemory(start++, "0000010001000111");//"END_OF_SENTENCE" 1626
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001000111");
+        memory.setMemory(start++, "0000010001001000");
+        memory.setMemory(start++, "0001010001001000");
+        memory.setMemory(start++, "0000100001001000");
+        memory.setMemory(start++, "1010111000000000");//set r2 = 0
+        memory.setMemory(start++, "0000010001001001");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001001001");
+        memory.setMemory(start++, "0000010001000101");//set 1892 to 1900
+        memory.setMemory(start++, "0000100001000010");
+        memory.setMemory(start++, "0011010011000000");//jma main
+
+        start = 1800;
+        memory.setMemory(start++, "0000010001000101");//word 1800
+        memory.setMemory(start++, "0000100001000010");
+        memory.setMemory(start++, "0000010001000100");
+        memory.setMemory(start++, "0000100001000001");
+        memory.setMemory(start++, "0001011001100011");
+        memory.setMemory(start++, "0010111000110000");//JNE R2 END_OF_WORD
+        memory.setMemory(start++, "0000011001100011");
+        memory.setMemory(start++, "0001101000000001");
+        memory.setMemory(start++, "0000010001001000");//#WORD PLUS ONE
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001001000");
+        memory.setMemory(start++, "0100001000101111");//SOB R2 COMPARE2 "word compare" 1811
+        memory.setMemory(start++, "0000010101001000");
+        memory.setMemory(start++, "0000011001000111");
+        memory.setMemory(start++, "1111100100000001");
+        memory.setMemory(start++, "1111101000000001");
+        memory.setMemory(start++, "0000010001100010");//COMPARE2 1816
+        memory.setMemory(start++, "0001010001100001");
+        memory.setMemory(start++, "0010110000110000");//JNE R0 END_OF_WORD
+        memory.setMemory(start++, "0000010001000001");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001000001");
+        memory.setMemory(start++, "0000010001000010");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001000010");
+        memory.setMemory(start++, "0010110000101110");//jma word compare
+        memory.setMemory(start++, "1010111000000000");//set r2 = 0 END_OF_WORD  1826
+        memory.setMemory(start++, "0000010001001000");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001001000");
+        memory.setMemory(start++, "0000010001001001");
+        memory.setMemory(start++, "0001100000000001");
+        memory.setMemory(start++, "0000100001001001");
+        memory.setMemory(start++, "0000010001000101");//set 1892 to 1900
+        memory.setMemory(start++, "0000100001000010");
+        memory.setMemory(start++, "0011010011000000");//jma main
         
         Scanner in;
         int charCount = 0;
@@ -1373,20 +1503,21 @@ public class Simulator_MainWindow extends javax.swing.JFrame
         }
         while(in.hasNext())
         {
-            String next = in.nextLine();
+        	String next = in.nextLine();
             for (int i = 0; i < next.length(); i++)
             {
                 char c = next.charAt(i);
                 charCount++;
                 String binary = Instructions.characterToBinary(String.valueOf(c));
-                memory.setMemory(memory.HEAP_START_ADDRESS + charCount, binary);
+                int ASCII = Instructions.binary_to_int(binary);
+                memory.setMemory(memory.HEAP_START_ADDRESS + charCount, Instructions.int_to_binary_16bits(ASCII));
                 //io.pushOutput(next);
                 io_area.append(String.valueOf(c));
             }
         }
         
-        memory.setMemory(memory.HEAP_START_ADDRESS, Instructions.int_to_binary_16bits(charCount));
-        io_area.append("\nEnter a word to find and press <enter>: ");
+//        memory.setMemory(memory.HEAP_START_ADDRESS, Instructions.int_to_binary_16bits(charCount));
+//        io_area.append("\nEnter a word to find and press <enter>: ");
         updateDisplay();
 
     }//GEN-LAST:event_load_program2_buttonActionPerformed

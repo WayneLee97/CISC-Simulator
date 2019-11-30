@@ -259,7 +259,7 @@ public class Instructions {
 	
 	//load index register from the memory
 	public void LDX(String instruction){
-            System.out.println("LDX");
+        //System.out.println("LDX");
 		//still, get the EA
 		int EA = EA_calculator(instruction);
 		//set MAR
@@ -274,7 +274,7 @@ public class Instructions {
 			registers.setMBR(mm.getMemory(EA));
 			registers.setX2(mm.getMemory(EA));
 		}else if(instruction.substring(6, 8).equals("11")){//X3
-                    System.out.println("    x3" + String.valueOf(EA));
+            //System.out.println("    x3" + String.valueOf(EA));
 			//set MBR
 			registers.setMBR(mm.getMemory(EA));
 			registers.setX3(mm.getMemory(EA));
@@ -1091,9 +1091,9 @@ public class Instructions {
                     binary = registers.getR3();
             }
             
-            output = binaryToCharacter(binary);
-            //output = Integer.toString(binary_to_int_16bits(binary));
-            io.pushOutput(output);
+            //output = binaryToCharacter(binary);
+            output = Integer.toString(binary_to_int_16bits(binary));
+            io.pushOutput('\n' + output + '\n');
 
         }
         else
@@ -1111,25 +1111,22 @@ public class Instructions {
         String immed = instruction.substring(11, 16);
 
     	int immedValue = binary_to_int(immed);
-        System.out.println(instruction);
-        System.out.println(immed);
-        System.out.println(String.valueOf(immedValue));
-        if (immedValue != 0) {
+//        System.out.println(instruction);
+//        System.out.println(immed);
+//        System.out.println(String.valueOf(immedValue));
             //find out which register to store the address
-            if (instruction.substring(6, 8).equals("00")) {//R0
-                String value = int_to_binary_16bits(immedValue);
-                registers.setR0(value);
-            } else if(instruction.substring(6, 8).equals("01")){//R1
-                String value = int_to_binary_16bits(immedValue);
-                registers.setR1(value);
-            }else if(instruction.substring(6, 8).equals("10")){//R2
-                String value = int_to_binary_16bits(immedValue);
-                registers.setR2(value);
-            }else if(instruction.substring(6, 8).equals("11")){//R3
-                String value = int_to_binary_16bits(immedValue);
-                registers.setR3(value);
-            }
+        if (instruction.substring(6, 8).equals("00")) {//R0
+            String value = int_to_binary_16bits(immedValue);
+            registers.setR0(value);
+        } else if(instruction.substring(6, 8).equals("01")){//R1
+            String value = int_to_binary_16bits(immedValue);
+            registers.setR1(value);
+        }else if(instruction.substring(6, 8).equals("10")){//R2
+            String value = int_to_binary_16bits(immedValue);
+            registers.setR2(value);
+        }else if(instruction.substring(6, 8).equals("11")){//R3
+            String value = int_to_binary_16bits(immedValue);
+            registers.setR3(value);
         }
     }
-    
 }

@@ -23,7 +23,7 @@ public class Memory
     private String memory[];
     private LinkedHashMap<Integer, String> cache;
     public final int MAX_CACHE = 16;
-    public final int MEMORY_SIZE = 2048;
+    public final int MEMORY_SIZE = 4096;
     public final int VARIABLE_TABLE_POINTER = 7;
     public final int JUMP_TABLE_POINTER = 8;
     public final int VARIABLE_TABLE_ADDRESS = 32;
@@ -54,7 +54,7 @@ public class Memory
     {
         for (String address : memory)
         {
-            address = ""
+            address = "";
         }
     }
 

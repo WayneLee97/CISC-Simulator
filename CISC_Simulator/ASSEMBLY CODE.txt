@@ -1,0 +1,91 @@
+//The assembly code for test program 2. Copied from the source code.
+int start = 1700;
+memory.setMemory(start++, "0000010001000101");
+memory.setMemory(start++, "0000100001000010");
+memory.setMemory(start++, "0000010001101001");
+memory.setMemory(start++, "0001110000011111");
+memory.setMemory(start++, "0001110000000001");
+memory.setMemory(start++, "0010100001100110");//jz word
+memory.setMemory(start++, "0000010001101001");
+memory.setMemory(start++, "0001110000011111");
+memory.setMemory(start++, "0001110000011111");
+memory.setMemory(start++, "0001110000000001");
+memory.setMemory(start++, "0010100001100000");// jz sentence
+memory.setMemory(start++, "0000010001101001");
+memory.setMemory(start++, "0001110000011111");
+memory.setMemory(start++, "0001110000001111");
+memory.setMemory(start++, "0010100001100000");//jz sentence
+memory.setMemory(start++, "0000010001101001");
+memory.setMemory(start++, "0000100001100010");
+memory.setMemory(start++, "0000010001000010");
+memory.setMemory(start++, "0001100000000001");
+memory.setMemory(start++, "0000100001000010");
+memory.setMemory(start++, "0000010001001001");
+memory.setMemory(start++, "0001100000000001");
+memory.setMemory(start++, "0000100001001001");
+memory.setMemory(start++, "0001101000000001");
+memory.setMemory(start++, "0011010011000000");//jma main
+
+int start = 1600;
+memory.setMemory(start++, "0000010001000101");//sentence 1600
+memory.setMemory(start++, "0000100001000010");
+memory.setMemory(start++, "0000010001000100");
+memory.setMemory(start++, "0000100001000001");
+memory.setMemory(start++, "0001011001100011");
+memory.setMemory(start++, "0010111010101101");//JNE R2 END_OF_SENTENCE
+memory.setMemory(start++, "0000011001100011");
+memory.setMemory(start++, "0001101000000001");
+memory.setMemory(start++, "0000010001001000");
+memory.setMemory(start++, "0001100000000001");
+memory.setMemory(start++, "0000100001001000");
+memory.setMemory(start++, "0100001000101100");//SOB R2 COMPARE1 "sentence compare" 1611
+memory.setMemory(start++, "0000010101001000");
+memory.setMemory(start++, "0000011001000111");
+memory.setMemory(start++, "1111100100000000");
+memory.setMemory(start++, "1111101000000000");
+memory.setMemory(start++, "0000010001100010");//compare1 1616
+memory.setMemory(start++, "0001010001100001");
+memory.setMemory(start++, "0010110000101101");//jne r0 END_OF_SENTENCE
+memory.setMemory(start++, "0000010001000001");
+memory.setMemory(start++, "0001100000000001");
+memory.setMemory(start++, "0000100001000001");
+memory.setMemory(start++, "0000010001000010");
+memory.setMemory(start++, "0001100000000001");
+memory.setMemory(start++, "0000100001000010");
+memory.setMemory(start++, "0011010000101011");//jma sentence compare
+memory.setMemory(start++, "0000010001000111");//"END_OF_SENTENCE" 1626
+memory.setMemory(start++, "0001100000000001");
+memory.setMemory(start++, "0000100001000111");
+memory.setMemory(start++, "0000010001001000");
+memory.setMemory(start++, "0001010001001000");
+memory.setMemory(start++, "0000100001001000");
+memory.setMemory(start++, "0011010011000000");//jma main
+
+int start = 1800;
+memory.setMemory(start++, "0000010001000101");//word 1800
+memory.setMemory(start++, "0000100001000010");
+memory.setMemory(start++, "0000010001000100");
+memory.setMemory(start++, "0000100001000001");
+memory.setMemory(start++, "0001011001100011");
+memory.setMemory(start++, "0010111000000000");//JNE R2 END_OF_WORD
+memory.setMemory(start++, "0000011001100011");
+memory.setMemory(start++, "0001101000000001");
+memory.setMemory(start++, "0000010001001000");
+memory.setMemory(start++, "0001100000000001");
+memory.setMemory(start++, "0000100001001000");
+memory.setMemory(start++, "0100001000000000");//SOB R2 COMPARE2 "word compare" 1811
+memory.setMemory(start++, "0000010101001000");
+memory.setMemory(start++, "0000011001000111");
+memory.setMemory(start++, "1111100100000000");
+memory.setMemory(start++, "1111101000000000");
+memory.setMemory(start++, "0000010001100010");//COMPARE2 1816
+memory.setMemory(start++, "0001010001100001");
+memory.setMemory(start++, "0010110000110000");//JNE R0 END_OF_WORD
+memory.setMemory(start++, "0000010001000001");
+memory.setMemory(start++, "0001100000000001");
+memory.setMemory(start++, "0000100001000001");
+memory.setMemory(start++, "0000010001000010");
+memory.setMemory(start++, "0001100000000001");
+memory.setMemory(start++, "0000100001000010");
+memory.setMemory(start++, "0001011001001110");//jma word compare
+memory.setMemory(start++, "0011010011000000");//END_OF_WORD jma main 1826
