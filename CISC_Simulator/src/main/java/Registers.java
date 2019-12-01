@@ -38,6 +38,8 @@ public class Registers {
 		CC1 = 0;
 		CC2 = 0;
 		CC3 = 0;
+                FR0 = "0000000000000000";
+                FR1 = "0000000000000000";
 	}
 	
 	public static Registers instance()
